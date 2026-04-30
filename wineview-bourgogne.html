@@ -151,6 +151,7 @@ header{background:var(--ink);color:var(--cream);padding:0 20px;height:var(--head
   <div class="logo"><em>WineView</em><span>·</span><span class="region">Bourgogne</span></div>
   <button class="toggle-btn" id="satelliteBtn" onclick="toggleSatellite()">🛰 Satelliet</button>
   <button class="toggle-btn" id="geologieBtn" onclick="toggleGeologie()">🪨 Geologie</button>
+  <button class="toggle-btn" id="hoogteBtn" onclick="toggleHoogte()">⛰ Hoogte</button>
 </header>
 
 <div class="app-body">
@@ -196,7 +197,6 @@ header{background:var(--ink);color:var(--cream);padding:0 20px;height:var(--head
             <div class="info-cell"><div class="info-label">Druivenras</div><div class="info-value" id="infoGrapes">—</div></div>
             <div class="info-cell"><div class="info-label">Kleur</div><div class="info-value" id="infoColor">—</div></div>
             <div class="info-cell"><div class="info-label">Max rendement</div><div class="info-value" id="infoYield">—</div></div>
-            <div class="info-cell"><div class="info-label">Min. alc.</div><div class="info-value" id="infoAlcohol">—</div></div>
             <div class="info-cell"><div class="info-label">Sub-regio</div><div class="info-value" id="infoSubregion">—</div></div>
           </div>
           <div class="section">
@@ -787,6 +787,159 @@ const A = {
   "Viré-Clessé":{g:["Chardonnay"],c:"Blanc",y:"55 hl/ha",a:"10.5°",s:"Mâconnais",lieux:[],t:"Twee gemeenten in het hart van de Mâconnais. Kalksteen op klei. Rijkere, vollere stijl dan standaard Mâcon."},
 };
 
+const PC_DOM = {
+  "Gevrey-Chambertin|Clos Saint-Jacques":[
+    {n:"Armand Rousseau",note:"De absolute referentie. 1.06 ha, bijna onvindbaar."},
+    {n:"Bruno Clair",note:"Biodynamisch, 0.94 ha, eleganter dan Rousseau."},
+    {n:"Louis Jadot",note:"Négociant, groot perceel, iconische wijn."},
+    {n:"Fourrier",note:"0.37 ha, tannineus en complex, grote ager."},
+    {n:"Michel Esmonin",note:"Minder bekend, uitstekend prijs-kwaliteit."}
+  ],
+  "Chambolle-Musigny|Les Amoureuses":[
+    {n:"Comte de Vogüé",note:"0.57 ha, historische referentie."},
+    {n:"Jacques-Frédéric Mugnier",note:"0.53 ha, zijdezacht, definitief."},
+    {n:"Georges Roumier",note:"Slechts ~300 flessen/jaar, meest gezocht van Bourgogne."},
+    {n:"Robert Groffier",note:"0.41 ha, onderschat, uitstekend prijs-kwaliteit."},
+    {n:"Drouhin",note:"0.21 ha, toegankelijker, goede instap."}
+  ],
+  "Pommard|Les Rugiens Bas":[
+    {n:"de Courcel",note:"Quasi-monopole op Rugiens Bas, de referentie."},
+    {n:"Comte Armand",note:"Compact in jeugd, grandioze ager na 15+ jaar."},
+    {n:"Lejeune",note:"Biodynamisch, frissere aanpak, vroeger toegankelijk."}
+  ],
+  "Pommard|Les Rugiens Hauts":[
+    {n:"de Courcel",note:"Ook hier aanwezig, iets lichter dan Bas."},
+    {n:"Musy",note:"Traditioneel familiedomaine, consistente kwaliteit."}
+  ],
+  "Volnay|Caillerets":[
+    {n:"Marquis d'Angerville",note:"Clos des 60 Ouvrées, bijna monopole, iconisch."},
+    {n:"Pousse d'Or",note:"Aangrenzend perceel, zelfde topniveau."},
+    {n:"Bouchard Père & Fils",note:"Ancienne Vigne, oude stokken, extra concentratie."}
+  ],
+  "Volnay|Champans":[
+    {n:"Marquis d'Angerville",note:"Elegante, bloemige stijl. Top Volnay."},
+    {n:"Comtes Lafon",note:"Biodynamisch, verfijnd."},
+    {n:"Monthélie-Douhairet",note:"Kleine productie, traditioneel."}
+  ],
+  "Volnay|Clos des Chênes":[
+    {n:"Michel Lafarge",note:"Historische referentie voor Volnay."},
+    {n:"Drouhin",note:"Toegankelijk, consistent."}
+  ],
+  "Meursault|Perrières":[
+    {n:"Coche-Dury",note:"0.25 ha, duurste witte Bourgogne buiten GC. €5000+/fles."},
+    {n:"Comtes Lafon",note:"1.1 ha, biodynamisch, strak en mineraal."},
+    {n:"Guy Roulot",note:"0.21 ha, toegankelijker in jeugd dan Coche."},
+    {n:"Bouchard Père & Fils",note:"Négociant, goed geprijsd voor de naam."}
+  ],
+  "Meursault|Charmes":[
+    {n:"Comtes Lafon",note:"Meerdere percelen, Charmes Dessus en Milieu."},
+    {n:"Guy Roulot",note:"Minder besproken dan Perrières maar even goed."},
+    {n:"Drouhin",note:"Goed instapmodel voor Meursault PC stijl."}
+  ],
+  "Meursault|Genevrières":[
+    {n:"Comtes Lafon",note:"Top perceel, soms vergeleken met Perrières."},
+    {n:"François Jobard",note:"Uiterst geconcentreerd, lange ager."},
+    {n:"Bouchard",note:"Solide négociant versie."}
+  ],
+  "Puligny-Montrachet|Les Pucelles":[
+    {n:"Domaine Leflaive",note:"3.0 ha, bezit helft van Pucelles. Definitieve versie."},
+    {n:"Sauzet",note:"Iets opulenter dan Leflaive, geweldig prijs-kwaliteit."},
+    {n:"Carillon",note:"Klassiek, goed gestructureerd."}
+  ],
+  "Puligny-Montrachet|Les Folatières":[
+    {n:"Domaine Leflaive",note:"Ook hier de referentie."},
+    {n:"Louis Jadot",note:"Goed geprijsd voor een Puligny PC."},
+    {n:"Chartron & Trébuchet",note:"Toegankelijke instap."}
+  ],
+  "Puligny-Montrachet|Clavillon":[
+    {n:"Domaine Leflaive",note:"Rijkste Premier Cru van Puligny door meer klei."},
+    {n:"Sauzet",note:"Voller dan Pucelles, eerder te drinken."}
+  ],
+  "Chassagne-Montrachet|Les Ruchottes":[
+    {n:"Ramonet",note:"Referentie voor Chassagne wit. Mineraal en lang."},
+    {n:"Colin-Déleger",note:"Elegant, toegankelijk."}
+  ],
+  "Gevrey-Chambertin|Champeaux":[
+    {n:"Denis Mortet",note:"Arnaud Mortet's versie is een van de beste."},
+    {n:"Rossignol-Trapet",note:"Biodynamisch, traditioneel."},
+    {n:"Drouhin-Laroze",note:"Solide, toegankelijk geprijsd."}
+  ],
+  "Gevrey-Chambertin|Les Cazetiers":[
+    {n:"Armand Rousseau",note:"Naast Clos St-Jacques Rousseau's beste PC."},
+    {n:"Faiveley",note:"Groot perceel, solide kwaliteit."},
+    {n:"Bruno Clair",note:"Verfijnd, biodynamisch."}
+  ],
+  "Chambolle-Musigny|Les Fuées":[
+    {n:"Georges Roumier",note:"Meest toegankelijke PC van Roumier."},
+    {n:"Faiveley",note:"Groot perceel, redelijk geprijsd."}
+  ],
+  "Chambolle-Musigny|Les Sentiers":[
+    {n:"Robert Groffier",note:"Specialist van Chambolle. Stevigste wijn."},
+    {n:"Mugneret-Gibourg",note:"Toegankelijker, eerder te drinken."}
+  ],
+  "Vosne-Romanée|Les Suchots":[
+    {n:"Arnoux-Lachaux",note:"Powerful, Vosne op zijn best."},
+    {n:"Hudelot-Noëllat",note:"Elegant, consistente kwaliteit."},
+    {n:"Drouhin",note:"Négociant, goed geprijsd."}
+  ],
+  "Vosne-Romanée|Aux Malconsorts":[
+    {n:"Sylvain Cathiard",note:"Misschien de beste PC van Vosne. Quasi-GC niveau."},
+    {n:"Dujac",note:"Verfijnd, Chambolle-achtige elegantie."}
+  ],
+  "Nuits-Saint-Georges|Les Saint-Georges":[
+    {n:"Henri Gouges",note:"Historische referentie voor Nuits. Monopole op wit."},
+    {n:"Faiveley",note:"Krachtig, tannineus, lange ager."},
+    {n:"Thibault Liger-Belair",note:"Moderne aanpak, rijpe stijl."}
+  ],
+  "Nuits-Saint-Georges|Vaucrains":[
+    {n:"Henri Gouges",note:"Stuggere stijl dan Les Saints-Georges, meer tannine."},
+    {n:"Faiveley",note:"Robuust, traditioneel."}
+  ],
+  "Beaune|Clos des Mouches":[
+    {n:"Joseph Drouhin",note:"Quasi-monopole. Clos des Mouches Blanc is iconisch."},
+    {n:"Chanson",note:"Solide, goed geprijsd."}
+  ],
+  "Beaune|Grèves":[
+    {n:"Bouchard Père & Fils",note:"Vigne de l'Enfant Jésus — hun topwijn."},
+    {n:"Drouhin",note:"Elegant, klassiek Beaune."}
+  ],
+  "Beaune|Bressandes":[
+    {n:"Chandon de Briailles",note:"Biodynamisch, elegant."},
+    {n:"Hospices de Beaune",note:"Cuvée Guigone de Salins, veiling elk jaar."},
+    {n:"Bouchard",note:"Consistente kwaliteit."}
+  ],
+  "Chablis|Montée de Tonnerre":[
+    {n:"Raveneau",note:"François & Bernard Raveneau. Definitieve versie, onvindbaar."},
+    {n:"Dauvissat",note:"Biodynamisch, naast Raveneau het absolute toppunt."},
+    {n:"William Fèvre",note:"Toegankelijker, consistent."}
+  ],
+  "Chablis|Fourchaume":[
+    {n:"William Fèvre",note:"Groot perceel, uitstekende prijs-kwaliteit."},
+    {n:"La Chablisienne",note:"Coöperatie, verrassend goed."},
+    {n:"Billaud-Simon",note:"Traditioneel, strak en mineraal."}
+  ],
+  "Chablis|Vaillons":[
+    {n:"Raveneau",note:"Ook hier de referentie."},
+    {n:"La Chablisienne",note:"Best buy voor Chablis PC."},
+    {n:"Dauvissat",note:"Biodynamisch, zuiver en lang."}
+  ],
+  "Mercurey|Clos des Barraults":[
+    {n:"Michel Juillot",note:"De specialist van Mercurey. Referentie."},
+    {n:"Faiveley",note:"Négociant, solide kwaliteit."}
+  ],
+  "Pouilly-Fuissé|Les Ménétrières":[
+    {n:"Château Fuissé",note:"Pionier van de nieuwe PC classificatie (2020)."},
+    {n:"Domaine Ferret",note:"Drouhin-bezit, uitstekende kwaliteit."}
+  ],
+  "Aloxe-Corton|Les Valozières":[
+    {n:"Tollot-Beaut",note:"Specialist van Aloxe-Corton."},
+    {n:"Chandon de Briailles",note:"Elegant, biodynamisch."}
+  ],
+  "Savigny-lès-Beaune|Les Marconnets":[
+    {n:"Faiveley",note:"Krachtig, tannineus voor Savigny."},
+    {n:"Bouchard",note:"Toegankelijk, goed geprijsd."}
+  ],
+};
 const DOM = {
   "Gevrey-Chambertin":[
     {n:"Domaine Armand Rousseau",t:"Domaine",b:false,note:"Referentie Chambertin & Clos St-Jacques, familiebedrijf 1920"},
@@ -945,6 +1098,30 @@ function toggleSatellite(){
   if(satMode){map.removeLayer(darkTiles);satTiles.addTo(map);lblTiles.addTo(map);btn.classList.add('active');}
   else{map.removeLayer(satTiles);map.removeLayer(lblTiles);darkTiles.addTo(map);btn.classList.remove('active');}
 }
+let hoogteMode=false;
+let hoogteLayer=null;
+function toggleHoogte(){
+  hoogteMode=!hoogteMode;
+  const btn=document.getElementById('hoogteBtn');
+  if(hoogteMode){
+    if(!hoogteLayer){
+      hoogteLayer=L.tileLayer.wms('https://data.geopf.fr/wms-r',{
+        layers:'ELEVATION.CONTOUR.LINE',
+        format:'image/png',
+        transparent:true,
+        opacity:0.7,
+        attribution:'© IGN Géoplateforme',
+        maxZoom:19
+      });
+    }
+    hoogteLayer.addTo(map);
+    btn.classList.add('active');
+  }else{
+    if(hoogteLayer&&map.hasLayer(hoogteLayer))map.removeLayer(hoogteLayer);
+    btn.classList.remove('active');
+  }
+}
+
 let geologieMode=false;
 let geologieLayer=null;
 function toggleGeologie(){
@@ -1056,7 +1233,6 @@ function showInfo(app){
   document.getElementById('infoGrapes').textContent=d.g?d.g.join(', '):'—';
   document.getElementById('infoColor').textContent=d.c||'—';
   document.getElementById('infoYield').textContent=d.y||'—';
-  document.getElementById('infoAlcohol').textContent=d.a||'—';
   document.getElementById('infoSubregion').textContent=d.s||'—';
   document.getElementById('grapeChips').innerHTML=d.g?d.g.map(g=>`<span class="grape-chip">${g}</span>`).join(''): '<span style="opacity:0.4;font-style:italic;font-size:0.8rem">Zie INAO cahier</span>';
   const lsec=document.getElementById('lieuxditsSection');
@@ -1068,7 +1244,7 @@ function showInfo(app){
   renderMicroklimaat(app);
   renderHistorisch(app);
   renderVintage(app);
-  renderDomainesForApp(app);
+  renderPCDomaines(app, klimaat);
 }
 
 function domItemHtml(d,app,clickable){
@@ -1078,6 +1254,34 @@ function renderDomainesForApp(app){
   const ds=DOM[app];
   document.getElementById('domainesContent').innerHTML=ds&&ds.length?ds.map(d=>domItemHtml(d,null,false)).join(''):`<div class="no-results">Geen bekende domaines voor ${app}.</div>`;
 }
+function renderPCDomaines(app, klimaat){
+  const key = app + '|' + klimaat;
+  const el = document.getElementById('domainesContent');
+  // Probeer PC-specifieke data eerst
+  const pcData = PC_DOM[key];
+  if(pcData && pcData.length){
+    el.innerHTML = pcData.map(d=>`
+      <div class="domaine-item">
+        <div class="domaine-name">${d.n}</div>
+        <div class="domaine-note">${d.note}</div>
+      </div>`).join('');
+    return;
+  }
+  // Fallback: appellation-niveau domaines
+  const appData = DOM[app];
+  if(appData && appData.length){
+    el.innerHTML = appData.map(d=>`
+      <div class="domaine-item">
+        <div class="domaine-name">${d.n}</div>
+        <div class="domaine-meta"><span>${d.t}</span>${d.b?'<span class="bio-badge">🌿 Bio</span>':''}</div>
+        <div class="domaine-note">${d.note}</div>
+      </div>`).join('');
+  } else {
+    el.innerHTML = `<div class="no-results">Geen bekende domaines voor ${klimaat}.</div>`;
+  }
+}
+
+
 function renderAllDomaines(q=''){
   const ft=q.toLowerCase();
   let html='',cnt=0;
@@ -1087,6 +1291,18 @@ function renderAllDomaines(q=''){
     }
   }
   document.getElementById('domainesContent').innerHTML=cnt?html:`<div class="no-results">Geen domaines gevonden voor "${q}"</div>`;
+}
+
+function zoomToGC(app){
+  const l=allLayers[app];if(!l)return;
+  map.fitBounds(l.getBounds().pad(0.3));
+  selectApp(app,l);
+}
+function zoomToPC(key){
+  const l=allPCLayers[key];if(!l)return;
+  const [app,klimaat]=key.split('|');
+  map.fitBounds(l.getBounds().pad(0.5));
+  selectPC(app,klimaat,l);
 }
 
 function zoomTo(app){
@@ -1111,12 +1327,20 @@ si.addEventListener('input',function(){
   const q=this.value.trim().toLowerCase();
   if(curTab==='domaines'){renderAllDomaines(q);sr.style.display='none';return;}
   if(q.length<2){sr.style.display='none';return;}
-  const am=Object.keys(allLayers).filter(a=>a.toLowerCase().includes(q)).slice(0,5);
+  let h='';
+  // Grand Cru appellations
+  Object.keys(allLayers).filter(a=>a.toLowerCase().includes(q)).slice(0,3).forEach(a=>{
+    h+=`<div class="search-result-item" onclick="zoomToGC('${a}');sr.style.display='none'"><div class="ri-name">${a}</div><div class="ri-type">Grand Cru</div></div>`;
+  });
+  // Premier Cru klimaten
+  Object.keys(allPCLayers).filter(k=>k.toLowerCase().includes(q)).slice(0,5).forEach(key=>{
+    const [app,klimaat]=key.split('|');
+    h+=`<div class="search-result-item" onclick="zoomToPC('${key}');sr.style.display='none'"><div class="ri-name">${klimaat}</div><div class="ri-type">Premier Cru · ${app}</div></div>`;
+  });
+  // Domaines
   const dm=[];
   for(const[app,ds] of Object.entries(DOM))for(const d of ds)if(d.n.toLowerCase().includes(q))dm.push({...d,app});
-  let h='';
-  am.forEach(a=>{h+=`<div class="search-result-item" onclick="zoomTo('${a}');sr.style.display='none'"><div class="ri-name">${a}</div><div class="ri-type">${allLayers[a]._cls}</div></div>`;});
-  dm.slice(0,4).forEach(d=>{h+=`<div class="search-result-item" onclick="zoomTo('${d.app}');sr.style.display='none'"><div class="ri-name">${d.n}</div><div class="ri-type">Domaine · ${d.app}</div></div>`;});
+  dm.slice(0,3).forEach(d=>{h+=`<div class="search-result-item" onclick="zoomToGC('${d.app}');sr.style.display='none'"><div class="ri-name">${d.n}</div><div class="ri-type">Domaine · ${d.app}</div></div>`;});
   if(h){sr.innerHTML=h;sr.style.display='block';}else sr.style.display='none';
 });
 document.addEventListener('click',e=>{if(!e.target.closest('.search-wrap-inner'))sr.style.display='none';});
