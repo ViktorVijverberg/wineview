@@ -73,6 +73,7 @@ header{background:var(--ink);color:var(--cream);padding:0 20px;height:var(--head
 .badge.grand-cru{background:rgba(184,148,31,0.2);color:var(--gold-light);border:1px solid rgba(184,148,31,0.4);}
 .badge.premier-cru{background:rgba(255,255,255,0.12);color:rgba(245,240,232,0.85);border:1px solid rgba(245,240,232,0.25);}
 .badge.regional{background:rgba(255,255,255,0.07);color:rgba(245,240,232,0.55);border:1px solid rgba(245,240,232,0.15);}
+.badge.village{background:rgba(90,58,26,0.2);color:rgba(245,240,232,0.6);border:1px solid rgba(90,58,26,0.4);}
 
 .info-grid{display:grid;grid-template-columns:1fr 1fr;}
 .info-cell{padding:11px 18px;border-right:1px solid rgba(107,30,46,0.08);border-bottom:1px solid rgba(107,30,46,0.08);}
@@ -206,7 +207,9 @@ header{background:var(--ink);color:var(--cream);padding:0 20px;height:var(--head
           <p>Klik op een appellation<br>voor terroir, AOC-regelgeving<br>&amp; AI-toelichting.</p>
           <div class="map-legend">
             <div class="legend-row"><div class="legend-swatch" style="background:#c9a227"></div>Grand Cru</div>
-            <div class="legend-row"><div class="legend-swatch" style="background:#8b2035"></div>Village / Premier Cru</div>
+            <div class="legend-row"><div class="legend-swatch" style="background:#6b2d8b"></div>Premier Cru dorp</div>
+            <div class="legend-row"><div class="legend-swatch" style="background:#8b2035"></div>Village</div>
+            <div class="legend-row"><div class="legend-swatch" style="background:#f5c842;border:1px solid #ccc"></div>Klimaten (zoom 11+)</div>
           </div>
         </div>
         <div class="plot-panel" id="plotPanel">
@@ -876,10 +879,21 @@ const DOM = {
 };
 
 const COLORS={
-  "Grand Cru":{f:"#c9a227",s:"#7a5c0a",o:0.80},
-  "Village/Premier Cru":{f:"#8b2035",s:"#4a0d1a",o:0.72},
+  "Grand Cru":{f:"#c9a227",s:"#7a5c0a",o:0.82},
+  "Premier Cru":{f:"#6b2d8b",s:"#3a1050",o:0.75},
+  "Village/Premier Cru":{f:"#8b2035",s:"#4a0d1a",o:0.70},
+  "Village":{f:"#5a3a1a",s:"#2a1800",o:0.60},
 };
-const BC={"Grand Cru":"grand-cru","Village/Premier Cru":"premier-cru"};
+const BC={"Grand Cru":"grand-cru","Premier Cru":"premier-cru","Village/Premier Cru":"premier-cru","Village":"regional"};
+
+// Appellations met echte Premier Cru klimaten
+const PC_APPS=new Set(["Aloxe-Corton","Beaune","Chablis","Chablis Grand Cru","Chambolle-Musigny","Chassagne-Montrachet","Fixin","Gevrey-Chambertin","Givry","Mercurey","Meursault","Morey-Saint-Denis","Nuits-Saint-Georges","Pommard","Pouilly-Fuissé","Puligny-Montrachet","Savigny-lès-Beaune","Volnay","Vosne-Romanée","Vougeot"]);
+
+function getAppClass(app, rawCls){
+  if(rawCls==="Grand Cru") return "Grand Cru";
+  if(PC_APPS.has(app)) return "Premier Cru";
+  return "Village";
+}
 
 const map=L.map('map',{center:[47.0,4.85],zoom:9});
 const darkTiles=L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'©OpenStreetMap ©CARTO | INAO 2026',subdomains:'abcd',maxZoom:19});
@@ -933,7 +947,7 @@ map.on('zoomend',function(){
   }else{
     if(klimatenLayer&&map.hasLayer(klimatenLayer))map.removeLayer(klimatenLayer);
     Object.entries(allLayers).forEach(([app,l])=>{
-      const c=COLORS[l._cls]||COLORS["Village/Premier Cru"];
+      const c=COLORS[l._cls]||COLORS["Village"];
       l.setStyle({fillOpacity:c.o,opacity:0.9,weight:1.2,color:c.s});
       l.off('click');
       l.on('click',function(){selectApp(app,this);});
@@ -1079,9 +1093,10 @@ let allLayers={},activeLayer=null,activeFilter='all';
   L.geoJSON(GEOJSON_DATA,{
     style:f=>{const c=COLORS[f.properties.classification]||COLORS["Village/Premier Cru"];return{color:c.s,fillColor:c.f,fillOpacity:c.o,weight:1.2,opacity:0.9};},
     onEachFeature:(f,layer)=>{
-      const app=f.properties.app,cls=f.properties.classification||'Village/Premier Cru';
+      const app=f.properties.app,rawCls=f.properties.classification||'Village/Premier Cru';
+      const cls=getAppClass(app,rawCls);
       allLayers[app]=layer;layer._app=app;layer._cls=cls;
-      const c=COLORS[cls]||COLORS["Village/Premier Cru"];
+      const c=COLORS[cls]||COLORS["Village"];
       layer.bindTooltip(app,{sticky:true,offset:[10,0]});
       layer.on('mouseover',function(){if(activeLayer!==this)this.setStyle({weight:2.5,fillOpacity:Math.min(c.o+0.12,0.95)});});
       layer.on('mouseout',function(){if(activeLayer!==this)this.setStyle({weight:1.2,fillOpacity:c.o});});
