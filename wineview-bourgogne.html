@@ -98,6 +98,28 @@ header{background:var(--ink);color:var(--cream);padding:0 20px;height:var(--head
 .bio-badge{background:rgba(74,122,48,0.12);color:#4a7a30;border:1px solid rgba(74,122,48,0.25);padding:1px 6px;border-radius:2px;font-size:0.5rem;}
 .domaine-note{font-size:0.78rem;color:rgba(26,18,8,0.58);margin-top:2px;font-style:italic;}
 
+/* Klimaat panel */
+.klimaat-panel{display:none;padding:0;}
+.klimaat-panel.active{display:block;}
+.klimaat-header{padding:16px 22px 12px;background:linear-gradient(135deg,#3a2800,#1a1200);color:#f5e6a0;}
+.klimaat-label{font-family:'DM Mono',monospace;font-size:0.56rem;text-transform:uppercase;letter-spacing:0.14em;opacity:0.6;margin-bottom:3px;}
+.klimaat-name{font-size:1.3rem;font-weight:300;font-style:italic;line-height:1.2;}
+.klimaat-app{font-family:'DM Mono',monospace;font-size:0.6rem;opacity:0.55;margin-top:4px;text-transform:uppercase;letter-spacing:0.1em;}
+.klimaat-producers{padding:12px 20px;}
+.kp-title{font-family:'DM Mono',monospace;font-size:0.56rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--terroir);margin-bottom:8px;}
+.kp-item{padding:9px 0;border-bottom:1px solid rgba(107,30,46,0.07);}
+.kp-item:last-child{border:none;}
+.kp-name{font-size:0.9rem;font-weight:600;color:var(--wine);}
+.kp-meta{font-family:'DM Mono',monospace;font-size:0.54rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--terroir);margin-top:2px;}
+.kp-note{font-size:0.78rem;color:rgba(26,18,8,0.58);margin-top:2px;font-style:italic;}
+.klimaat-stats{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid rgba(107,30,46,0.08);}
+.ks-cell{padding:11px 18px;border-right:1px solid rgba(107,30,46,0.08);}
+.ks-cell:nth-child(even){border-right:none;}
+.ks-label{font-family:'DM Mono',monospace;font-size:0.55rem;text-transform:uppercase;letter-spacing:0.09em;color:var(--terroir);margin-bottom:2px;}
+.ks-value{font-size:0.88rem;color:var(--wine);}
+.back-btn{display:inline-block;margin:12px 20px;padding:6px 14px;font-family:'DM Mono',monospace;font-size:0.58rem;text-transform:uppercase;letter-spacing:0.08em;border:1px solid rgba(107,30,46,0.2);border-radius:2px;cursor:pointer;color:var(--terroir);}
+.back-btn:hover{background:rgba(107,30,46,0.06);}
+
 .ai-section{padding:14px 20px;}
 
 /* Geologie / vintage / historisch secties */
@@ -241,6 +263,23 @@ header{background:var(--ink);color:var(--cream);padding:0 20px;height:var(--head
       </div>
       <div id="domainesTab" style="display:none">
         <div id="domainesContent"></div>
+      </div>
+      <div class="klimaat-panel" id="klimaatPanel">
+        <div class="back-btn" onclick="closeKlimaatPanel()">← Terug naar appellation</div>
+        <div class="klimaat-header">
+          <div class="klimaat-label">Premier Cru Klimaat</div>
+          <div class="klimaat-name" id="klimaatName">—</div>
+          <div class="klimaat-app" id="klimaatApp">—</div>
+        </div>
+        <div class="klimaat-stats" id="klimaatStats"></div>
+        <div class="klimaat-producers">
+          <div class="kp-title">Producenten</div>
+          <div id="klimaatProducers"></div>
+        </div>
+        <div class="ai-section">
+          <div class="ai-label">AI Sommelier</div>
+          <div id="klimaatAI"><div class="ai-loading"><span></span><span></span><span></span></div></div>
+        </div>
       </div>
     </div>
   </div>
@@ -468,6 +507,130 @@ const VINTAGE_MAP = {
   "Mercurey":"_Cote_Chalonnaise","Givry":"_Cote_Chalonnaise",
   "Rully":"_Cote_Chalonnaise","Montagny":"_Cote_Chalonnaise",
   "Pouilly-Fuissé":"_Maconnais","Saint-Véran":"_Maconnais","Viré-Clessé":"_Maconnais"
+};
+const KLIM = {
+  "Clos Saint-Jacques":{app:"Gevrey-Chambertin",ha:"6.7",eigenaars:"5",info:"De meest begeerde Premier Cru van Gevrey. Velen beschouwen hem als Grand Cru in alles behalve naam. Steile ZO-helling, perfecte drainage.",
+    prod:[
+      {n:"Armand Rousseau",meta:"Référence absolue · 1.06 ha",note:"De benchmark. Bijna onvindbaar, prijzen stijgen elk jaar."},
+      {n:"Bruno Clair",meta:"Biodynamisch · 0.94 ha",note:"Indrukwekkende consistentie, eleganter dan Rousseau."},
+      {n:"Louis Jadot",meta:"Négociant · Monopole Clos",note:"Jadot's Clos Saint-Jacques is één van hun beste wijnen."},
+      {n:"Fourrier",meta:"Kleine productie · 0.37 ha",note:"Zeer geconcentreerd, tannineus in jeugd, grandioze ager."},
+      {n:"Michel Esmonin",meta:"Familiedomaine · 0.35 ha",note:"Minder bekend maar uitstekend, goed prijs-kwaliteit."}
+    ]},
+  "Les Amoureuses":{app:"Chambolle-Musigny",ha:"5.4",eigenaars:"15",info:"'De geliefden' — misschien de meest poëtische naam in Bourgogne. Grenst aan Musigny GC. Ongelooflijk bloemig, fluweelzacht.",
+    prod:[
+      {n:"Comte de Vogüé",meta:"Historisch referentie · 0.57 ha",note:"De Vogüé's versie is synoniem met de ideale Chambolle."},
+      {n:"Jacques-Frédéric Mugnier",meta:"Bijna monopole · 0.53 ha",note:"Misschien de meest geraffineerde, zijdezachte versie."},
+      {n:"Roumier",meta:"Cult-status · 0.10 ha",note:"Slechts 300 flessen per jaar. Meest gezochte Bourgogne ter wereld."},
+      {n:"Drouhin",meta:"Négociant · 0.21 ha",note:"Solide, toegankelijker, goede instap."},
+      {n:"Robert Groffier",meta:"Klein domaine · 0.41 ha",note:"Onderschat. Geweldig prijs-kwaliteit voor Les Amoureuses."}
+    ]},
+  "Les Rugiens":{app:"Pommard",ha:"13.7",eigenaars:"30+",info:"Het rode ijzerhoudende zand (rugiens = roodachtig) geeft Pommard zijn krachtigste, meest tannineuze Premier Cru. Langste houdbaarheid van het dorp.",
+    prod:[
+      {n:"de Courcel",meta:"Référence · Monopole Bas",note:"Rugiens Bas is hun kroonstuk. Monument aan tannineuze perfectie."},
+      {n:"Comte Armand",meta:"Clos des Epeneaux monopole · Rugiens",note:"Indrukwekkend, compact in jeugd, opent na 15+ jaar prachtig."},
+      {n:"Musy",meta:"Kleine productie",note:"Familiebedrijf, traditionele aanpak, consistente kwaliteit."},
+      {n:"Lejeune",meta:"Biodynamisch",note:"Frissere aanpak, meer toegankelijk in jonge staat."}
+    ]},
+  "Caillerets":{app:"Volnay",ha:"14.0",eigenaars:"25+",info:"De koningin van Volnay. Gedocumenteerd al in 1328 — één van de oudst vermelde Premier Cru klimaten. Fluweelzacht, kersachtig, eeuwig.",
+    prod:[
+      {n:"Marquis d'Angerville",meta:"Historisch · Clos des 60 Ouvrées",note:"Bijna monopole op het beste gedeelte. Iconisch."},
+      {n:"Pousse d'Or",meta:"Clos de la Bousse d'Or",note:"Aangrenzend perceel, zelfde niveau. Uitstekend."},
+      {n:"Bouchard Père & Fils",meta:"Négociant · Ancienne Vigne",note:"Oude stokken geven extra concentratie."}
+    ]},
+  "Montée de Tonnerre":{app:"Chablis",ha:"18.4",eigenaars:"20+",info:"De beste Premier Cru van Chablis, door velen als quasi-Grand Cru beschouwd. Zuid-zuidoost helling direct naast Fourchaume. Steenachtig, jodiumachtig, eindeloos lang.",
+    prod:[
+      {n:"Raveneau",meta:"Legende · kleine productie",note:"François & Bernard Raveneau maken de definitieve versie. Onvindbaar."},
+      {n:"Dauvissat",meta:"Biodynamisch referentie",note:"Vincent Dauvissat's versie is naast Raveneau het absolute toppunt."},
+      {n:"William Fèvre",meta:"Grote productie, consistente kwaliteit",note:"Toegankelijker, goed instapmodel voor de stijl."},
+      {n:"La Chablisienne",meta:"Coöperatie",note:"Verrassend goed voor de prijs."}
+    ]},
+  "Perrières":{app:"Meursault",ha:"13.7",eigenaars:"20+",info:"De onofficiële Grand Cru van Meursault. Dunste bodem van het dorp, meeste kalksteen. Geeft de meest minerale, strakste en langst houdbare Meursault.",
+    prod:[
+      {n:"Coche-Dury",meta:"Absolute legende · 0.25 ha",note:"Jean-François Coche-Dury's Perrières is het duurste wit van Bourgogne buiten de GCs. 5000€+ per fles."},
+      {n:"Comtes Lafon",meta:"Biodynamisch referentie · 1.1 ha",note:"De andere benchmark. Strakker en mineraler dan de Charmes."},
+      {n:"Guy Roulot",meta:"Toegankelijker · 0.21 ha",note:"Meer opengooibaar in jeugd dan Coche. Uitstekend."},
+      {n:"Bouchard Père & Fils",meta:"Négociant · grote productie",note:"Solide, goed geprijsd voor de naam."}
+    ]},
+  "Clos de la Roche":{app:"Morey-Saint-Denis",ha:"16.9",eigenaars:"20+",info:"De grootste Grand Cru van Morey, maar heeft Premier Cru buurpercelen van hoge kwaliteit. Krachtig, complex, dicht bij Chambertin-stijl.",
+    prod:[
+      {n:"Ponsot",meta:"Vieux Vignes monopole",note:"Ponsot's Clos de la Roche Vieilles Vignes is een monument. 60+ jaar oude stokken."},
+      {n:"Dujac",meta:"Biodynamisch · elegante stijl",note:"Meer Chambolle-achtig dan typisch Morey. Verfijnd."},
+      {n:"Rousseau",meta:"Klein perceel",note:"Armand Rousseau maakt ook hier een iconische wijn."}
+    ]},
+  "Les Charmes":{app:"Meursault",ha:"31.1",eigenaars:"40+",info:"Grootste Premier Cru van Meursault. Rijker en boteriger dan Perrières door diepere grond. Eerder te drinken, breder publiek.",
+    prod:[
+      {n:"Comtes Lafon",meta:"Referentie · meerdere percelen",note:"Lafon maakt meerdere versies (Charmes Dessus/Milieu). Altijd uitstekend."},
+      {n:"Guy Roulot",meta:"Toegankelijk · consistent",note:"Minder besproken dan zijn Perrières maar even goed geprijsd."},
+      {n:"Albert Grivault",meta:"Clos des Perrières monopole",note:"Buurperceel Perrières. Uitstekende kwaliteit."},
+      {n:"Drouhin",meta:"Négociant · grote productie",note:"Goed instapmodel voor Meursault Premier Cru stijl."}
+    ]},
+  "Pucelles":{app:"Puligny-Montrachet",ha:"6.8",eigenaars:"12",info:"De meest sierlijke Premier Cru van Puligny. Grenst aan Bienvenues-Bâtard-Montrachet. Bloemig, fijn mineraal, eerder toegankelijk dan Folatières.",
+    prod:[
+      {n:"Leflaive",meta:"Biodynamisch référence · 3.0 ha",note:"Leflaive bezit de helft van Pucelles. Definitieve versie."},
+      {n:"Sauzet",meta:"Elegant · consistente kwaliteit",note:"Iets meer opulent dan Leflaive, geweldig prijs-kwaliteit."},
+      {n:"Carillon",meta:"Traditioneel · kleine productie",note:"François Carillon maakt een klassieke, goed gestructureerde versie."}
+    ]},
+  "Folatières":{app:"Puligny-Montrachet",ha:"17.7",eigenaars:"20+",info:"Grootste Premier Cru van Puligny. Hogere ligging dan Pucelles, meer kalksteen. Strakker, mineraler, meer ageingpotentieel.",
+    prod:[
+      {n:"Leflaive",meta:"Biodynamisch",note:"Ook hier de referentie, al minder gedomineerd dan Pucelles."},
+      {n:"Jadot",meta:"Négociant · grote productie",note:"Goed geprijsd voor een Puligny PC."},
+      {n:"Chartron & Trébuchet",meta:"Toegankelijk",note:"Mooie instap in Puligny Premier Cru niveau."}
+    ]},
+  "Clos Saint-Denis":{app:"Morey-Saint-Denis",ha:"6.6",eigenaars:"10",info:"Grand Cru die zijn naam gaf aan het dorp. Eleganter dan Clos de la Roche, meer Chambolle-achtig van karakter.",
+    prod:[
+      {n:"Dujac",meta:"Grootste eigenaar · referentie",note:"Dujac's versie is de meest geraffineerde van het klimaat."},
+      {n:"Bertagna",meta:"Kleine productie",note:"Minder bekend maar consistent goed."},
+      {n:"Ponsot",meta:"Vieilles Vignes",note:"Krachtigere stijl dan Dujac, meer tannine."}
+    ]},
+  "Champeaux":{app:"Gevrey-Chambertin",ha:"6.4",eigenaars:"10",info:"Hoge ligging aan de top van de Côte. Koeler microklimaat, meer zuur, elegante stijl voor Gevrey. Onderschat door toeristen.",
+    prod:[
+      {n:"Denis Mortet",meta:"Cult-status",note:"Arnaud Mortet's versie is een van de beste. Bordeaux-achtig in structuur."},
+      {n:"Rossignol-Trapet",meta:"Biodynamisch",note:"Consistente, traditionele aanpak."},
+      {n:"Drouhin-Laroze",meta:"Négociant",note:"Solide, toegankelijk geprijsd."}
+    ]},
+  "Les Epenots":{app:"Pommard",ha:"20.0",eigenaars:"35+",info:"Naast Rugiens de bekendste Premier Cru van Pommard. Iets zachter en toegankelijker dan Rugiens. Rijker fruit, minder tannine.",
+    prod:[
+      {n:"de Courcel",meta:"Groot Epenots referentie",note:"De Courcel maakt zowel Rugiens als Epenots. Grands Epenots is fenomenaal."},
+      {n:"Hospices de Beaune",meta:"Cuvée Dames de la Charité",note:"Veild elk jaar bij de Hospices veiling. Groot publieksbereik."},
+      {n:"Lejeune",meta:"Biodynamisch · klein domaine",note:"Elegant, minder tannineus dan de meeste Pommard PC's."}
+    ]},
+  "Santenots":{app:"Meursault",ha:"9.0",eigenaars:"15",info:"Bijzonder geval: ligt in Meursault maar mag als Volnay Premier Cru verkocht worden voor rood. Witte versie heet Meursault Santenots.",
+    prod:[
+      {n:"Comtes Lafon",meta:"Referentie voor wit & rood",note:"Lafon maakt hier zowel wit als rood. Het rode Volnay Santenots is uitmuntend."},
+      {n:"Matrot",meta:"Traditioneel familiedomaine",note:"Meursault Santenots Blanc is hun kroonjuweel."}
+    ]},
+  "Clos des Mouches":{app:"Beaune",ha:"25.1",eigenaars:"5",info:"De meest beroemde Premier Cru van Beaune. Naam betekent 'bijenkasten' (mouches = bijen in Bourgondisch dialect). Zowel rood als white.",
+    prod:[
+      {n:"Joseph Drouhin",meta:"Quasi-monopole · referentie",note:"Drouhin bezit het grootste deel. Hun Clos des Mouches Blanc is iconisch."},
+      {n:"Chanson",meta:"Eigen Beaune specialist",note:"Solide, goed geprijsd voor de faam van het klimaat."}
+    ]},
+  "Vaillons":{app:"Chablis",ha:"42.0",eigenaars:"30+",info:"Grootste Premier Cru van Chablis. Rive Gauche (linkeroever). Rijker en volumineuzer dan de Rive Droite klimaten. Toegankelijker jonge leeftijd.",
+    prod:[
+      {n:"Raveneau",meta:"Legende · kleine productie",note:"Ook hier de absolute referentie."},
+      {n:"La Chablisienne",meta:"Coöperatie · goede waarde",note:"Best buy voor Chablis Premier Cru."},
+      {n:"Billaud-Simon",meta:"Traditioneel",note:"Bijna puur, strak en mineraal. Onderschat."}
+    ]},
+  "Bressandes":{app:"Beaune",ha:"17.7",eigenaars:"20+",info:"Na Clos des Mouches de meest gerenommeerde Premier Cru van Beaune. ZO-helling, rode bodem, krachtigere stijl dan de meeste Beaune PC's.",
+    prod:[
+      {n:"Hospices de Beaune",meta:"Cuvée Guigone de Salins",note:"De Hospices veiling Bressandes is historisch."},
+      {n:"Chandon de Briailles",meta:"Biodynamisch",note:"Uitstekende, elegante versie."},
+      {n:"Bouchard",meta:"Négociant · groot perceel",note:"Consistente kwaliteit, goed geprijsd."}
+    ]},
+  "Les Fuées":{app:"Chambolle-Musigny",ha:"6.1",eigenaars:"10",info:"Grenzend aan Bonnes-Mares GC. Krachtiger en tannineuzer dan Les Amoureuses — meer Morey-Saint-Denis karakter. Onderschat.",
+    prod:[
+      {n:"Roumier",meta:"Referentie · kleine productie",note:"Roumier's Fuées is zijn meest toegankelijke premier cru."},
+      {n:"Faiveley",meta:"Négociant · groot perceel",note:"Solide, consistent, redelijk geprijsd."}
+    ]},
+  "Les Sentiers":{app:"Chambolle-Musigny",ha:"7.1",eigenaars:"12",info:"Aan de grens met Morey-Saint-Denis. Steviger en aardser dan de meeste Chambolle klimaten. Goede ager.",
+    prod:[
+      {n:"Robert Groffier",meta:"Referentie",note:"Groffier is de specialist van Chambolle. Sentiers is zijn stevigste wijn."},
+      {n:"Mugneret-Gibourg",meta:"Fijne stijl",note:"Meer toegankelijk dan Groffier, eerder te drinken."}
+    ]},
+  "Clos de la Maréchale":{app:"Nuits-Saint-Georges",ha:"9.5",eigenaars:"1",info:"Monopole van Faiveley (vroeger van J.F. Mugnier). Grenst aan Prémeaux-Prissey. Krachtig, tannineus, typisch Nuits karakter.",
+    prod:[
+      {n:"Faiveley",meta:"Monopole · grote productie",note:"Enige producent. Uitstekende kwaliteit voor de prijs, vaak onderschat door snobs."}
+    ]}
 };
 const A = {
   "Chablis Grand Cru":{g:["Chardonnay"],c:"Blanc",y:"45 hl/ha",a:"11°",s:"Chablis",
@@ -724,6 +887,113 @@ const satTiles=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services
 const lblTiles=L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:19,opacity:0.8});
 darkTiles.addTo(map);
 let satMode=false;
+let klimatenLayer=null;
+let klimatenLoaded=false;
+
+map.createPane('klimatenPane');
+map.getPane('klimatenPane').style.zIndex=450;
+map.createPane('appellationPane');
+map.getPane('appellationPane').style.zIndex=400;
+
+async function loadKlimaten(){
+  if(klimatenLoaded)return;
+  klimatenLoaded=true;
+  try{
+    const r=await fetch('klimaten.geojson');
+    const data=await r.json();
+    klimatenLayer=L.geoJSON(data,{
+      pane:'klimatenPane',
+      style:f=>({color:'#f5c842',fillColor:'rgba(245,200,66,0.22)',fillOpacity:0.38,weight:1.8,opacity:1}),
+      onEachFeature:(f,layer)=>{
+        const naam=f.properties.klimaat_naam||f.properties.nom||'Klimaat';
+        const app=f.properties.app||'';
+        layer.bindTooltip(`<strong>${naam}</strong><br><span style="opacity:0.7;font-size:0.8em">${app} · Premier Cru</span>`,{sticky:true,offset:[10,0]});
+        layer.on('click',function(e){
+          L.DomEvent.stopPropagation(e);
+          showKlimaatInfo(naam,app);
+        });
+        layer.on('mouseover',function(){
+          this.setStyle({fillOpacity:0.7,weight:3,fillColor:'rgba(245,200,66,0.6)',color:'#fff'});
+          this.bringToFront();
+        });
+        layer.on('mouseout',function(){
+          this.setStyle({fillOpacity:0.38,weight:1.8,fillColor:'rgba(245,200,66,0.22)',color:'#f5c842'});
+        });
+      }
+    });
+  }catch(e){console.error('Klimaten load error',e);}
+}
+
+map.on('zoomend',function(){
+  const z=map.getZoom();
+  if(z>=11){
+    loadKlimaten();
+    if(klimatenLayer&&!map.hasLayer(klimatenLayer))klimatenLayer.addTo(map);
+    Object.values(allLayers).forEach(l=>{l.setStyle({fillOpacity:0.08,opacity:0.25,weight:0.8});l.off('click');});
+  }else{
+    if(klimatenLayer&&map.hasLayer(klimatenLayer))map.removeLayer(klimatenLayer);
+    Object.entries(allLayers).forEach(([app,l])=>{
+      const c=COLORS[l._cls]||COLORS["Village/Premier Cru"];
+      l.setStyle({fillOpacity:c.o,opacity:0.9,weight:1.2,color:c.s});
+      l.off('click');
+      l.on('click',function(){selectApp(app,this);});
+    });
+  }
+  updateZoomHint();
+});
+
+function showKlimaatInfo(naam,app){
+  // Verberg appellation panel, toon klimaat panel
+  document.getElementById('placeholder').style.display='none';
+  document.getElementById('plotPanel').classList.remove('active');
+  document.getElementById('klimaatPanel').classList.add('active');
+  switchTab('terroir');
+
+  document.getElementById('klimaatName').textContent=naam;
+  document.getElementById('klimaatApp').textContent=app+' · Premier Cru';
+
+  // Stats
+  const kd=KLIM[naam];
+  const statsEl=document.getElementById('klimaatStats');
+  if(kd){
+    statsEl.innerHTML=`
+      <div class="ks-cell"><div class="ks-label">Oppervlakte</div><div class="ks-value">${kd.ha} ha</div></div>
+      <div class="ks-cell"><div class="ks-label">Eigenaars</div><div class="ks-value">${kd.eigenaars}</div></div>`;
+    if(kd.info){
+      statsEl.innerHTML+=`<div class="ks-cell" style="grid-column:1/-1;border-right:none"><div class="ks-label">Terroir</div><div class="ks-value" style="font-size:0.8rem;line-height:1.5">${kd.info}</div></div>`;
+    }
+    // Producenten
+    const prodEl=document.getElementById('klimaatProducers');
+    if(kd.prod&&kd.prod.length){
+      prodEl.innerHTML=kd.prod.map(p=>`<div class="kp-item"><div class="kp-name">${p.n}</div><div class="kp-meta">${p.meta}</div><div class="kp-note">${p.note}</div></div>`).join('');
+    }else{
+      prodEl.innerHTML='<div style="opacity:0.45;font-size:0.82rem">Klik op de AI Sommelier voor producenten info.</div>';
+    }
+  }else{
+    statsEl.innerHTML='';
+    document.getElementById('klimaatProducers').innerHTML='<div style="opacity:0.45;font-size:0.82rem">Geen gedetailleerde data voor dit klimaat. Zie AI Sommelier.</div>';
+  }
+
+  // AI
+  loadKlimaatAI(naam,app);
+}
+
+function closeKlimaatPanel(){
+  document.getElementById('klimaatPanel').classList.remove('active');
+  document.getElementById('plotPanel').classList.add('active');
+}
+
+async function loadKlimaatAI(naam,app){
+  const el=document.getElementById('klimaatAI');
+  el.innerHTML='<div class="ai-loading"><span></span><span></span><span></span></div>';
+  const prompt=`Je bent expert sommelier. Geef een rijke toelichting (3-4 zinnen, Nederlands) over het Premier Cru klimaat "${naam}" in ${app}, Bourgogne. Wat maakt dit klimaat uniek qua bodem, ligging of stijl? Noem de typische smaakkenmerken en één concreet advies (producent of jaargang).`;
+  try{
+    const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,messages:[{role:"user",content:prompt}]})});
+    const data=await r.json();
+    el.innerHTML=`<div class="ai-text">${data.content?.[0]?.text||'Tijdelijk niet beschikbaar.'}</div>`;
+  }catch{el.innerHTML='<div class="ai-text" style="opacity:0.4;font-style:italic">AI niet beschikbaar.</div>';}
+}
+
 function toggleSatellite(){
   satMode=!satMode;
   const btn=document.getElementById('satelliteBtn');
