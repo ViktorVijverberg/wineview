@@ -99,9 +99,6 @@ header{background:var(--ink);color:var(--cream);padding:0 20px;height:var(--head
 .bio-badge{background:rgba(74,122,48,0.12);color:#4a7a30;border:1px solid rgba(74,122,48,0.25);padding:1px 6px;border-radius:2px;font-size:0.5rem;}
 .domaine-note{font-size:0.78rem;color:rgba(26,18,8,0.58);margin-top:2px;font-style:italic;}
 
-.ai-section{padding:14px 20px;}
-
-/* Geologie / vintage / historisch secties */
 .section-collapsible{cursor:pointer;user-select:none;}
 .section-collapsible:hover{background:rgba(107,30,46,0.04);}
 .section-caret{float:right;transition:transform 0.2s;font-size:0.7rem;opacity:0.5;}
@@ -234,10 +231,6 @@ header{background:var(--ink);color:var(--cream);padding:0 20px;height:var(--head
               <div class="vintage-grid" id="vintageGrid"></div>
             </div>
           </div>
-          <div class="ai-section">
-            <div class="ai-label">AI Sommelier</div>
-            <div id="aiContent"><div class="ai-loading"><span></span><span></span><span></span></div></div>
-          </div>
         </div>
       </div>
       <div id="domainesTab" style="display:none">
@@ -336,19 +329,8 @@ function showPCInfo(app, klimaat){
   renderVintage(app);
   renderDomainesForApp(app);
   // AI specifiek voor dit klimaat
-  loadPCai(app, klimaat);
 }
 
-async function loadPCai(app, klimaat){
-  const el = document.getElementById('aiContent');
-  el.innerHTML='<div class="ai-loading"><span></span><span></span><span></span></div>';
-  const prompt=`Je bent expert sommelier. Geef een rijke toelichting (3-4 zinnen, Nederlands) over het Premier Cru klimaat "${klimaat}" in ${app}, Bourgogne. Wat maakt dit perceel uniek qua bodem, ligging of stijl? Noem de typische smaakkenmerken en één concreet advies.`;
-  try{
-    const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,messages:[{role:"user",content:prompt}]})});
-    const data=await r.json();
-    el.innerHTML=`<div class="ai-text">${data.content?.[0]?.text||'Tijdelijk niet beschikbaar.'}</div>`;
-  }catch{el.innerHTML='<div class="ai-text" style="opacity:0.4;font-style:italic">AI niet beschikbaar.</div>';}
-}
 
 initMap();
 
@@ -1087,7 +1069,6 @@ function showInfo(app){
   renderHistorisch(app);
   renderVintage(app);
   renderDomainesForApp(app);
-  loadAI(app);
 }
 
 function domItemHtml(d,app,clickable){
@@ -1140,17 +1121,6 @@ si.addEventListener('input',function(){
 });
 document.addEventListener('click',e=>{if(!e.target.closest('.search-wrap-inner'))sr.style.display='none';});
 
-async function loadAI(app){
-  const el=document.getElementById('aiContent');
-  el.innerHTML='<div class="ai-loading"><span></span><span></span><span></span></div>';
-  const d=A[app]||{};
-  const prompt=`Je bent een expert sommelier en wijnhistoricus. Geef een beknopte maar rijke toelichting (4-5 zinnen, in het Nederlands) over de appellation "${app}" in Bourgogne.${d.s?` Sub-regio: ${d.s}.`:''} Focus op wat deze appellation uniek maakt voor een wijnliefhebber, een historisch of geologisch feit, de typische smaakstijl en een praktische tip (producent of jaargangen). Vloeiende tekst, geen opsomming.`;
-  try{
-    const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,messages:[{role:"user",content:prompt}]})});
-    const data=await r.json();
-    el.innerHTML=`<div class="ai-text">${data.content?.[0]?.text||'Tijdelijk niet beschikbaar.'}</div>`;
-  }catch{el.innerHTML='<div class="ai-text" style="opacity:0.4;font-style:italic">AI niet beschikbaar.</div>';}
-}
 </script>
 </body>
 </html>
