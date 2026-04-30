@@ -99,28 +99,6 @@ header{background:var(--ink);color:var(--cream);padding:0 20px;height:var(--head
 .bio-badge{background:rgba(74,122,48,0.12);color:#4a7a30;border:1px solid rgba(74,122,48,0.25);padding:1px 6px;border-radius:2px;font-size:0.5rem;}
 .domaine-note{font-size:0.78rem;color:rgba(26,18,8,0.58);margin-top:2px;font-style:italic;}
 
-/* Klimaat panel */
-.klimaat-panel{display:none;padding:0;}
-.klimaat-panel.active{display:block;}
-.klimaat-header{padding:16px 22px 12px;background:linear-gradient(135deg,#3a2800,#1a1200);color:#f5e6a0;}
-.klimaat-label{font-family:'DM Mono',monospace;font-size:0.56rem;text-transform:uppercase;letter-spacing:0.14em;opacity:0.6;margin-bottom:3px;}
-.klimaat-name{font-size:1.3rem;font-weight:300;font-style:italic;line-height:1.2;}
-.klimaat-app{font-family:'DM Mono',monospace;font-size:0.6rem;opacity:0.55;margin-top:4px;text-transform:uppercase;letter-spacing:0.1em;}
-.klimaat-producers{padding:12px 20px;}
-.kp-title{font-family:'DM Mono',monospace;font-size:0.56rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--terroir);margin-bottom:8px;}
-.kp-item{padding:9px 0;border-bottom:1px solid rgba(107,30,46,0.07);}
-.kp-item:last-child{border:none;}
-.kp-name{font-size:0.9rem;font-weight:600;color:var(--wine);}
-.kp-meta{font-family:'DM Mono',monospace;font-size:0.54rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--terroir);margin-top:2px;}
-.kp-note{font-size:0.78rem;color:rgba(26,18,8,0.58);margin-top:2px;font-style:italic;}
-.klimaat-stats{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid rgba(107,30,46,0.08);}
-.ks-cell{padding:11px 18px;border-right:1px solid rgba(107,30,46,0.08);}
-.ks-cell:nth-child(even){border-right:none;}
-.ks-label{font-family:'DM Mono',monospace;font-size:0.55rem;text-transform:uppercase;letter-spacing:0.09em;color:var(--terroir);margin-bottom:2px;}
-.ks-value{font-size:0.88rem;color:var(--wine);}
-.back-btn{display:inline-block;margin:12px 20px;padding:6px 14px;font-family:'DM Mono',monospace;font-size:0.58rem;text-transform:uppercase;letter-spacing:0.08em;border:1px solid rgba(107,30,46,0.2);border-radius:2px;cursor:pointer;color:var(--terroir);}
-.back-btn:hover{background:rgba(107,30,46,0.06);}
-
 .ai-section{padding:14px 20px;}
 
 /* Geologie / vintage / historisch secties */
@@ -209,7 +187,6 @@ header{background:var(--ink);color:var(--cream);padding:0 20px;height:var(--head
             <div class="legend-row"><div class="legend-swatch" style="background:#c9a227"></div>Grand Cru</div>
             <div class="legend-row"><div class="legend-swatch" style="background:#6b2d8b"></div>Premier Cru dorp</div>
             <div class="legend-row"><div class="legend-swatch" style="background:#8b2035"></div>Village</div>
-            <div class="legend-row"><div class="legend-swatch" style="background:#f5c842;border:1px solid #ccc"></div>Klimaten (zoom 11+)</div>
           </div>
         </div>
         <div class="plot-panel" id="plotPanel">
@@ -266,24 +243,7 @@ header{background:var(--ink);color:var(--cream);padding:0 20px;height:var(--head
       </div>
       <div id="domainesTab" style="display:none">
         <div id="domainesContent"></div>
-      </div>
-      <div class="klimaat-panel" id="klimaatPanel">
-        <div class="back-btn" onclick="closeKlimaatPanel()">← Terug naar appellation</div>
-        <div class="klimaat-header">
-          <div class="klimaat-label">Premier Cru Klimaat</div>
-          <div class="klimaat-name" id="klimaatName">—</div>
-          <div class="klimaat-app" id="klimaatApp">—</div>
-        </div>
-        <div class="klimaat-stats" id="klimaatStats"></div>
-        <div class="klimaat-producers">
-          <div class="kp-title">Producenten</div>
-          <div id="klimaatProducers"></div>
-        </div>
-        <div class="ai-section">
-          <div class="ai-label">AI Sommelier</div>
-          <div id="klimaatAI"><div class="ai-loading"><span></span><span></span><span></span></div></div>
-        </div>
-      </div>
+      </div>      </div>
     </div>
   </div>
 </div>
@@ -310,49 +270,7 @@ async function initMap(){
   }).addTo(map);
 }
 initMap();
-const MK = {
-  "Chablis Grand Cru":{alt:"80-250m",hel:"ZZO-ZO",bod:"Kimméridgien kalksteen",risk:"Laat rijp, vorstgevoelig",info:"Zeven klimaten op steile ZZO-helling boven de Serein. De kalksteenontsluiting zorgt voor optimale drainage en warmtereflectie."},
-  "Chablis":{alt:"90-180m",hel:"Divers",bod:"Kimméridgien & Portlandien",risk:"Matig vorstgevoelig",info:"Verspreid over heuvels rond Chablis. Premières Crus op gunstigere hellingen met Kimméridgien; villages op Portlandien = iets minder mineraliteit."},
-  "Petit Chablis":{alt:"150-280m",hel:"Vlak/N",bod:"Portlandien kalksteen",risk:"Vorstgevoelig plateau",info:"Hoge plateaus met Portlandien bodem — minder mineraal dan Chablis. Koeler microklimaat door hoogte."},
-  "Chambertin":{alt:"270-320m",hel:"Z-ZO",bod:"Bajocien kalksteen & bruine klei",risk:"Laag risico",info:"Ideale middenflank aan de Côte de Nuits. Diepe bruine kleigrond op kalksteen geeft de Pinot Noir rijkheid en structuur."},
-  "Chambertin-Clos de Bèze":{alt:"270-310m",hel:"Z-ZO",bod:"Bajocien & Premeaux kalksteen",risk:"Laag risico",info:"Iets hogere ligging dan Chambertin, meer kalksteen aan oppervlak — eleganter en aromatischer van stijl."},
-  "Musigny":{alt:"260-290m",hel:"ZO",bod:"Bajocien kalksteen, dunne bodem",risk:"Laag risico",info:"Ultradunne bodem (20-40cm) op harde kalksteen. Klassiek 'silk on stone' profiel — de dunste bodem van alle Chambolle Grand Crus."},
-  "Clos de Vougeot":{alt:"240-280m",hel:"Z-ZO",bod:"Sterk variërend (argileux - calc)",risk:"Laag risico",info:"50 ha verdeeld over 80+ eigenaars. Bovenste deel (kalksteen) maakt de beste wijn; onderste deel (kleirig, nabij N74) is merkelijk minder."},
-  "Romanée-Conti":{alt:"265-275m",hel:"Z-ZO",bod:"Bajocien, ijzerrijke bruine klei",risk:"Laag risico",info:"1,8 ha middenflank. Combinatie van optimale helling, ijzerrijke klei op kalksteen en perfecte drainage. Vrijwel onverstoorde bodembiologie."},
-  "La Tâche":{alt:"255-290m",hel:"Z-ZO",bod:"Bajocien, diepere bodem dan RC",risk:"Laag risico",info:"6 ha — grotere variatie dan RC. Diepere grond in midden geeft rijkere, soms iets meer tannineuze stijl."},
-  "Richebourg":{alt:"255-275m",hel:"Z-ZO",bod:"Argileux, diep, kleirijker",risk:"Laag risico",info:"Meer klei dan RC of La Tâche — geeft voller, vlezig karakter. Vroeger rijp, royaler dan de andere Vosne GCs."},
-  "Corton":{alt:"280-330m",hel:"Z/ZO/W",bod:"Argileux boven kalk, zeer variabel",risk:"Laag-gemiddeld",info:"Enige rode Grand Cru van de Côte de Beaune. Grote heuvel met 3 richtingen; ZO-flank maakt de beste rode wijn, W-flank meer fruit."},
-  "Corton-Charlemagne":{alt:"300-360m",hel:"Z-ZW",bod:"Bajocien kalksteen, wit bergige bodem",risk:"Laag risico",info:"Hogere ligging, arme witte kalkbodem. Later rijpend dan Meursault/Puligny, maar bewaart langer. Monumentale mineraliteit."},
-  "Montrachet":{alt:"245-265m",hel:"Z-ZO",bod:"Bathonien-Bajocien kalk, dun",risk:"Laag risico",info:"8 ha verdeeld over Puligny en Chassagne. Perfecte combinatie hoogte, helling en kalkhoudende bodem. 's Werelds grootste witte wijn."},
-  "Gevrey-Chambertin":{alt:"260-350m",hel:"Z-ZO",bod:"Bajocien kalk, erosieruggen",risk:"Laag risico",info:"Village heeft uniek brede appellation — van de weg tot hoog de helling. Erosieruggen (comblanchien) geven caillouteux (grindachtige) bodem."},
-  "Chambolle-Musigny":{alt:"265-330m",hel:"Z-ZO",bod:"Kalksteen, dun, steenachtig",risk:"Laag risico",info:"Dunste, meest kalkhoudende bodem van de Côte de Nuits dorpen. Verklaart de fijne, soms broos-aromatische stijl van Chambolle."},
-  "Vosne-Romanée":{alt:"255-310m",hel:"ZO",bod:"Bajocien, ijzerrijke klei-kalk mix",risk:"Laag risico",info:"Klasse-centrum van de Côte de Nuits. Middenflank heeft ideale bodemdiepte. Grote consistentie tussen village en premier cru niveau."},
-  "Nuits-Saint-Georges":{alt:"250-310m",hel:"Z-ZO",bod:"Premeaux kalk, meer klei onderaan",risk:"Laag risico",info:"Geen Grand Crus, maar indrukwekkende Premiers Crus. Meer tannine dan Vosne door diepere kleilaag. Robuuster, langer houdbaar."},
-  "Beaune":{alt:"235-310m",hel:"ZO-O",bod:"Callovien-Oxfordien, complex mosaic",risk:"Laag risico",info:"Grootste Premier Cru appellation. Stadsomgeving met variabele bodem. Klassieke rode Côte de Beaune stijl: fruit, structuur, early approachability."},
-  "Pommard":{alt:"240-290m",hel:"Z-ZO",bod:"Argileux Ostrea, zwaar kleiig",risk:"Gemiddeld risico",info:"Zwaarste kleibodem van de Côte de Beaune. Gives structured, tannic wines. Rugiens en Epenots zijn de toppers — elk met subtiel andere drainage."},
-  "Volnay":{alt:"270-340m",hel:"ZO-Z",bod:"Callovien kalksteen, dunne bodem",risk:"Laag risico",info:"Tegenhanger van Pommard: dunnere, meer kalkrijke bodem geeft elegant, bloemig Pinot Noir. Caillerets en Champans zijn de aristocraten."},
-  "Meursault":{alt:"235-300m",hel:"Z-ZO",bod:"Callovien marga, rijke klei-kalk",risk:"Laag risico",info:"Diepere, rijkere bodem dan Puligny. Meer marga (klei-kalk). Geeft boteriger, rijkere Chardonnay. Perrières (meer kalk) maakt uitzondering."},
-  "Puligny-Montrachet":{alt:"240-310m",hel:"Z-ZO",bod:"Bathonien kalksteen, dun, arm",risk:"Laag risico",info:"Armste, dunste bodem van de witte Côte de Beaune topdorpen. Geeft hoogst minerale, nerveuse stijl. Clavoillon (kleirijker) is de rijkste premier cru."},
-  "Chassagne-Montrachet":{alt:"230-280m",hel:"ZO",bod:"Argileux, dieper dan Puligny",risk:"Laag risico",info:"Bredere variatie dan Puligny — zowel wit als rood. Diepere kleigrond geeft vollere, aardse witte wijn. Naar het Z: Santenay-karakter."},
-  "Mercurey":{alt:"220-320m",hel:"Z-ZO",bod:"Trias-Jura kalksteen",risk:"Gemiddeld risico",info:"Grootste rode Côte Chalonnaise. Bodem op Triassisch-Jurassisch kalksteen. Cooler dan Côte de Nuits maar structurele kwaliteit opvallend hoog."},
-  "Pouilly-Fuissé":{alt:"200-350m",hel:"Z",bod:"Urgonien kalksteen, rotsachtig",risk:"Laag risico",info:"Dramatisch landschap rond Roche de Vergisson en Solutré. Kalksteen-rots geeft mineraliteit. Premier Crus (2020) grotendeels op steilere hellingen."},
-  "Aloxe-Corton":{alt:"240-320m",hel:"Z-ZO",bod:"Bajocien, argileux mix",risk:"Laag risico",info:"Basis voor zowel Corton als Corton-Charlemagne GC. Village wijnen typisch stevig, korter houdbaar dan de GCs."},
-  "Savigny-lès-Beaune":{alt:"220-310m",hel:"N-Z (vallei)",bod:"Divers, alluviaal+kalk",risk:"Gemiddeld risico",info:"Vallei van de Rhoin. Twee tegengestelde hellingen: N-helling (koeler) maakt verfijndere wijn; Z-helling (warmer) maakt Pommard-achtig."},
-  "Saint-Aubin":{alt:"270-380m",hel:"Z-ZW",bod:"Bajocien kalksteen, hoogte",risk:"Gemiddeld risico",info:"Hoog gelegen, koeler microklimaat. Bordeaux van de Côte de Beaune — uitstekende kwaliteit/prijs. Dicht bij Puligny en Chassagne GC percelen."},
-  "Santenay":{alt:"225-310m",hel:"Z-ZO",bod:"Trias, zout graniet en schalie",risk:"Laag risico",info:"Enige plek in Bourgogne met graniet en schalie in de bodem (Trias). Geeft robuste, aardse rode wijn. Thermalwaterbronnen nabij."},
-  "Marsannay":{alt:"280-380m",hel:"Z-ZO",bod:"Bajocien kalk",risk:"Gemiddeld risico",info:"Noordelijkste dorp Côte de Nuits. Bekendst om rosé (enige Bourgogne rosé AOC). Recent premier cru classificatie aangevraagd."},
-  "Fixin":{alt:"280-380m",hel:"Z-ZO",bod:"Bajocien, steenachtig",risk:"Gemiddeld risico",info:"Minst bekend van de Côte de Nuits dorpen. Stevige, tannineuze stijl. Clos du Chapitre en Les Hervelets zijn de top Premiers Crus."},
-  "Vougeot":{alt:"240-290m",hel:"ZO",bod:"Variabel (kalk boven, klei onder)",risk:"Laag risico",info:"Klein village buiten de Clos de Vougeot muren. Wijnkwaliteit sterk afhankelijk van perceel — bovenste stukken naast GC zijn uitstekend."},
-  "Morey-Saint-Denis":{alt:"265-340m",hel:"ZO",bod:"Bajocien kalksteen",risk:"Laag risico",info:"Vier Grand Crus in één dorp (5e gedeeld). Kalksteen-rijk. Stijl zit tussen Gevrey (krachtig) en Chambolle (elegant) in."},
-  "Givry":{alt:"220-330m",hel:"Z-ZO",bod:"Callovien-Oxfordien",risk:"Gemiddeld risico",info:"Historisch favoriet van Henri IV. Twee Premiers Crus. Bodem op Callovien-Oxfordien kalksteen geeft frisse, fruitrijke Pinot Noir."},
-  "Rully":{alt:"220-320m",hel:"Z-ZO",bod:"Bajocien-Bathonien kalk",risk:"Gemiddeld risico",info:"Zowel wit als rood. Frisse Chardonnay door hoger gelegen koele percelen. Belangrijke basis voor Crémant de Bourgogne."},
-  "Montagny":{alt:"230-380m",hel:"Z",bod:"Cornbrash kalksteen",risk:"Gemiddeld risico",info:"100% wit (Chardonnay). Hoge ligging, koele nachten. Alle premier cru parcelen moeten minimaal 11,5° alcohol halen (historische regel)."},
-  "Saint-Véran":{alt:"200-350m",hel:"Z",bod:"Urgonien kalksteen",risk:"Laag risico",info:"Omringt Pouilly-Fuissé. Zelfde bodem, iets vlakker. Uitstekend prijs-kwaliteit voor Mâconnais Chardonnay."},
-  "Viré-Clessé":{alt:"230-300m",hel:"Z",bod:"Urgonien-Tithonien kalk",risk:"Laag risico",info:"Noord-Mâconnais. Rijpere stijl dan Chablis. Opheffing van motrotten en botrytis in warme jaren geeft bijzondere late-harvest stijlen."},
-  "Maranges":{alt:"280-380m",hel:"Z-ZW",bod:"Trias, graniet en rode ijzergrond",risk:"Gemiddeld risico",info:"Meest zuidelijke village van de Côte de Beaune. Rood-ijzerhoudende bodem geeft robuste, fruitrijke Pinot Noir. Onderschat appellation."},
-  "Monthélie":{alt:"280-360m",hel:"Z-ZW",bod:"Bajocien-Callovien kalk",risk:"Gemiddeld risico",info:"Ingeklemd tussen Volnay en Meursault. Deels zelfde Grand Montrachet helling als Meursault. Premier cru 'Les Champs Fulliot' grenst aan Volnay Mitans."},
-  "Auxey-Duresses":{alt:"250-380m",hel:"N & Z (vallei)",bod:"Variabel (kalk + alluviaal)",risk:"Gemiddeld risico",info:"Vallei achter Meursault. Wit lijkt op lichtere Meursault. Rood onderschat. N-helling koeler en minder rijp; Z-helling benadert Volnay stijl."},
-};
+
 const HIST = {
   "Chambertin":[
     {era:"12e-18e eeuw",txt:"Gesticht door Benedictijner monniken van de abdij van Bèze (630 n.Chr.). De legende van 'Bertin' — een wijngaardenier die de monniken naijverde — geeft de naam. Napoleon's favoriete wijn; hij dronk hem elke dag verdund met water."},
@@ -530,6 +448,54 @@ const VINTAGE_MAP = {
   "Rully":"_Cote_Chalonnaise","Montagny":"_Cote_Chalonnaise",
   "Pouilly-Fuissé":"_Maconnais","Saint-Véran":"_Maconnais","Viré-Clessé":"_Maconnais"
 };
+const MK = {
+  "Chablis Grand Cru":{alt:"80-250m",hel:"ZZO-ZO",bod:"Kimméridgien kalksteen",risk:"Laat rijp, vorstgevoelig",info:"Zeven klimaten op steile ZZO-helling boven de Serein. De kalksteenontsluiting zorgt voor optimale drainage en warmtereflectie."},
+  "Chablis":{alt:"90-180m",hel:"Divers",bod:"Kimméridgien & Portlandien",risk:"Matig vorstgevoelig",info:"Verspreid over heuvels rond Chablis. Premières Crus op gunstigere hellingen met Kimméridgien; villages op Portlandien = iets minder mineraliteit."},
+  "Petit Chablis":{alt:"150-280m",hel:"Vlak/N",bod:"Portlandien kalksteen",risk:"Vorstgevoelig plateau",info:"Hoge plateaus met Portlandien bodem — minder mineraal dan Chablis. Koeler microklimaat door hoogte."},
+  "Chambertin":{alt:"270-320m",hel:"Z-ZO",bod:"Bajocien kalksteen & bruine klei",risk:"Laag risico",info:"Ideale middenflank aan de Côte de Nuits. Diepe bruine kleigrond op kalksteen geeft de Pinot Noir rijkheid en structuur."},
+  "Chambertin-Clos de Bèze":{alt:"270-310m",hel:"Z-ZO",bod:"Bajocien & Premeaux kalksteen",risk:"Laag risico",info:"Iets hogere ligging dan Chambertin, meer kalksteen aan oppervlak — eleganter en aromatischer van stijl."},
+  "Musigny":{alt:"260-290m",hel:"ZO",bod:"Bajocien kalksteen, dunne bodem",risk:"Laag risico",info:"Ultradunne bodem (20-40cm) op harde kalksteen. Klassiek 'silk on stone' profiel — de dunste bodem van alle Chambolle Grand Crus."},
+  "Clos de Vougeot":{alt:"240-280m",hel:"Z-ZO",bod:"Sterk variërend (argileux - calc)",risk:"Laag risico",info:"50 ha verdeeld over 80+ eigenaars. Bovenste deel (kalksteen) maakt de beste wijn; onderste deel (kleirig, nabij N74) is merkelijk minder."},
+  "Romanée-Conti":{alt:"265-275m",hel:"Z-ZO",bod:"Bajocien, ijzerrijke bruine klei",risk:"Laag risico",info:"1,8 ha middenflank. Combinatie van optimale helling, ijzerrijke klei op kalksteen en perfecte drainage. Vrijwel onverstoorde bodembiologie."},
+  "La Tâche":{alt:"255-290m",hel:"Z-ZO",bod:"Bajocien, diepere bodem dan RC",risk:"Laag risico",info:"6 ha — grotere variatie dan RC. Diepere grond in midden geeft rijkere, soms iets meer tannineuze stijl."},
+  "Richebourg":{alt:"255-275m",hel:"Z-ZO",bod:"Argileux, diep, kleirijker",risk:"Laag risico",info:"Meer klei dan RC of La Tâche — geeft voller, vlezig karakter. Vroeger rijp, royaler dan de andere Vosne GCs."},
+  "Corton":{alt:"280-330m",hel:"Z/ZO/W",bod:"Argileux boven kalk, zeer variabel",risk:"Laag-gemiddeld",info:"Enige rode Grand Cru van de Côte de Beaune. Grote heuvel met 3 richtingen; ZO-flank maakt de beste rode wijn, W-flank meer fruit."},
+  "Corton-Charlemagne":{alt:"300-360m",hel:"Z-ZW",bod:"Bajocien kalksteen, wit bergige bodem",risk:"Laag risico",info:"Hogere ligging, arme witte kalkbodem. Later rijpend dan Meursault/Puligny, maar bewaart langer. Monumentale mineraliteit."},
+  "Montrachet":{alt:"245-265m",hel:"Z-ZO",bod:"Bathonien-Bajocien kalk, dun",risk:"Laag risico",info:"8 ha verdeeld over Puligny en Chassagne. Perfecte combinatie hoogte, helling en kalkhoudende bodem. 's Werelds grootste witte wijn."},
+  "Gevrey-Chambertin":{alt:"260-350m",hel:"Z-ZO",bod:"Bajocien kalk, erosieruggen",risk:"Laag risico",info:"Village heeft uniek brede appellation — van de weg tot hoog de helling. Erosieruggen (comblanchien) geven caillouteux (grindachtige) bodem."},
+  "Chambolle-Musigny":{alt:"265-330m",hel:"Z-ZO",bod:"Kalksteen, dun, steenachtig",risk:"Laag risico",info:"Dunste, meest kalkhoudende bodem van de Côte de Nuits dorpen. Verklaart de fijne, soms broos-aromatische stijl van Chambolle."},
+  "Vosne-Romanée":{alt:"255-310m",hel:"ZO",bod:"Bajocien, ijzerrijke klei-kalk mix",risk:"Laag risico",info:"Klasse-centrum van de Côte de Nuits. Middenflank heeft ideale bodemdiepte. Grote consistentie tussen village en premier cru niveau."},
+  "Nuits-Saint-Georges":{alt:"250-310m",hel:"Z-ZO",bod:"Premeaux kalk, meer klei onderaan",risk:"Laag risico",info:"Geen Grand Crus, maar indrukwekkende Premiers Crus. Meer tannine dan Vosne door diepere kleilaag. Robuuster, langer houdbaar."},
+  "Beaune":{alt:"235-310m",hel:"ZO-O",bod:"Callovien-Oxfordien, complex mosaic",risk:"Laag risico",info:"Grootste Premier Cru appellation. Stadsomgeving met variabele bodem. Klassieke rode Côte de Beaune stijl: fruit, structuur, early approachability."},
+  "Pommard":{alt:"240-290m",hel:"Z-ZO",bod:"Argileux Ostrea, zwaar kleiig",risk:"Gemiddeld risico",info:"Zwaarste kleibodem van de Côte de Beaune. Gives structured, tannic wines. Rugiens en Epenots zijn de toppers — elk met subtiel andere drainage."},
+  "Volnay":{alt:"270-340m",hel:"ZO-Z",bod:"Callovien kalksteen, dunne bodem",risk:"Laag risico",info:"Tegenhanger van Pommard: dunnere, meer kalkrijke bodem geeft elegant, bloemig Pinot Noir. Caillerets en Champans zijn de aristocraten."},
+  "Meursault":{alt:"235-300m",hel:"Z-ZO",bod:"Callovien marga, rijke klei-kalk",risk:"Laag risico",info:"Diepere, rijkere bodem dan Puligny. Meer marga (klei-kalk). Geeft boteriger, rijkere Chardonnay. Perrières (meer kalk) maakt uitzondering."},
+  "Puligny-Montrachet":{alt:"240-310m",hel:"Z-ZO",bod:"Bathonien kalksteen, dun, arm",risk:"Laag risico",info:"Armste, dunste bodem van de witte Côte de Beaune topdorpen. Geeft hoogst minerale, nerveuse stijl. Clavoillon (kleirijker) is de rijkste premier cru."},
+  "Chassagne-Montrachet":{alt:"230-280m",hel:"ZO",bod:"Argileux, dieper dan Puligny",risk:"Laag risico",info:"Bredere variatie dan Puligny — zowel wit als rood. Diepere kleigrond geeft vollere, aardse witte wijn. Naar het Z: Santenay-karakter."},
+  "Mercurey":{alt:"220-320m",hel:"Z-ZO",bod:"Trias-Jura kalksteen",risk:"Gemiddeld risico",info:"Grootste rode Côte Chalonnaise. Bodem op Triassisch-Jurassisch kalksteen. Cooler dan Côte de Nuits maar structurele kwaliteit opvallend hoog."},
+  "Pouilly-Fuissé":{alt:"200-350m",hel:"Z",bod:"Urgonien kalksteen, rotsachtig",risk:"Laag risico",info:"Dramatisch landschap rond Roche de Vergisson en Solutré. Kalksteen-rots geeft mineraliteit. Premier Crus (2020) grotendeels op steilere hellingen."},
+  "Aloxe-Corton":{alt:"240-320m",hel:"Z-ZO",bod:"Bajocien, argileux mix",risk:"Laag risico",info:"Basis voor zowel Corton als Corton-Charlemagne GC. Village wijnen typisch stevig, korter houdbaar dan de GCs."},
+  "Savigny-lès-Beaune":{alt:"220-310m",hel:"N-Z (vallei)",bod:"Divers, alluviaal+kalk",risk:"Gemiddeld risico",info:"Vallei van de Rhoin. Twee tegengestelde hellingen: N-helling (koeler) maakt verfijndere wijn; Z-helling (warmer) maakt Pommard-achtig."},
+  "Saint-Aubin":{alt:"270-380m",hel:"Z-ZW",bod:"Bajocien kalksteen, hoogte",risk:"Gemiddeld risico",info:"Hoog gelegen, koeler microklimaat. Bordeaux van de Côte de Beaune — uitstekende kwaliteit/prijs. Dicht bij Puligny en Chassagne GC percelen."},
+  "Santenay":{alt:"225-310m",hel:"Z-ZO",bod:"Trias, zout graniet en schalie",risk:"Laag risico",info:"Enige plek in Bourgogne met graniet en schalie in de bodem (Trias). Geeft robuste, aardse rode wijn. Thermalwaterbronnen nabij."},
+  "Marsannay":{alt:"280-380m",hel:"Z-ZO",bod:"Bajocien kalk",risk:"Gemiddeld risico",info:"Noordelijkste dorp Côte de Nuits. Bekendst om rosé (enige Bourgogne rosé AOC). Recent premier cru classificatie aangevraagd."},
+  "Fixin":{alt:"280-380m",hel:"Z-ZO",bod:"Bajocien, steenachtig",risk:"Gemiddeld risico",info:"Minst bekend van de Côte de Nuits dorpen. Stevige, tannineuze stijl. Clos du Chapitre en Les Hervelets zijn de top Premiers Crus."},
+  "Vougeot":{alt:"240-290m",hel:"ZO",bod:"Variabel (kalk boven, klei onder)",risk:"Laag risico",info:"Klein village buiten de Clos de Vougeot muren. Wijnkwaliteit sterk afhankelijk van perceel — bovenste stukken naast GC zijn uitstekend."},
+  "Morey-Saint-Denis":{alt:"265-340m",hel:"ZO",bod:"Bajocien kalksteen",risk:"Laag risico",info:"Vier Grand Crus in één dorp (5e gedeeld). Kalksteen-rijk. Stijl zit tussen Gevrey (krachtig) en Chambolle (elegant) in."},
+  "Givry":{alt:"220-330m",hel:"Z-ZO",bod:"Callovien-Oxfordien",risk:"Gemiddeld risico",info:"Historisch favoriet van Henri IV. Twee Premiers Crus. Bodem op Callovien-Oxfordien kalksteen geeft frisse, fruitrijke Pinot Noir."},
+  "Rully":{alt:"220-320m",hel:"Z-ZO",bod:"Bajocien-Bathonien kalk",risk:"Gemiddeld risico",info:"Zowel wit als rood. Frisse Chardonnay door hoger gelegen koele percelen. Belangrijke basis voor Crémant de Bourgogne."},
+  "Montagny":{alt:"230-380m",hel:"Z",bod:"Cornbrash kalksteen",risk:"Gemiddeld risico",info:"100% wit (Chardonnay). Hoge ligging, koele nachten. Alle premier cru parcelen moeten minimaal 11,5° alcohol halen (historische regel)."},
+  "Saint-Véran":{alt:"200-350m",hel:"Z",bod:"Urgonien kalksteen",risk:"Laag risico",info:"Omringt Pouilly-Fuissé. Zelfde bodem, iets vlakker. Uitstekend prijs-kwaliteit voor Mâconnais Chardonnay."},
+  "Viré-Clessé":{alt:"230-300m",hel:"Z",bod:"Urgonien-Tithonien kalk",risk:"Laag risico",info:"Noord-Mâconnais. Rijpere stijl dan Chablis. Opheffing van motrotten en botrytis in warme jaren geeft bijzondere late-harvest stijlen."},
+  "Maranges":{alt:"280-380m",hel:"Z-ZW",bod:"Trias, graniet en rode ijzergrond",risk:"Gemiddeld risico",info:"Meest zuidelijke village van de Côte de Beaune. Rood-ijzerhoudende bodem geeft robuste, fruitrijke Pinot Noir. Onderschat appellation."},
+  "Monthélie":{alt:"280-360m",hel:"Z-ZW",bod:"Bajocien-Callovien kalk",risk:"Gemiddeld risico",info:"Ingeklemd tussen Volnay en Meursault. Deels zelfde Grand Montrachet helling als Meursault. Premier cru 'Les Champs Fulliot' grenst aan Volnay Mitans."},
+  "Auxey-Duresses":{alt:"250-380m",hel:"N & Z (vallei)",bod:"Variabel (kalk + alluviaal)",risk:"Gemiddeld risico",info:"Vallei achter Meursault. Wit lijkt op lichtere Meursault. Rood onderschat. N-helling koeler en minder rijp; Z-helling benadert Volnay stijl."},
+};
+
+
+
+
+
 const KLIM = {
   "Clos Saint-Jacques":{app:"Gevrey-Chambertin",ha:"6.7",eigenaars:"5",info:"De meest begeerde Premier Cru van Gevrey. Velen beschouwen hem als Grand Cru in alles behalve naam. Steile ZO-helling, perfecte drainage.",
     prod:[
@@ -920,110 +886,6 @@ const satTiles=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services
 const lblTiles=L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:19,opacity:0.8});
 darkTiles.addTo(map);
 let satMode=false;
-let klimatenLayer=null;
-let klimatenLoaded=false;
-
-map.createPane('klimatenPane');
-map.getPane('klimatenPane').style.zIndex=450;
-async function loadKlimaten(){
-  if(klimatenLoaded)return;
-  klimatenLoaded=true;
-  try{
-    const r=await fetch('klimaten.geojson');
-    const data=await r.json();
-    klimatenLayer=L.geoJSON(data,{
-      pane:'klimatenPane',
-      style:f=>({color:'#f5c842',fillColor:'rgba(245,200,66,0.22)',fillOpacity:0.38,weight:1.8,opacity:1}),
-      onEachFeature:(f,layer)=>{
-        const naam=f.properties.klimaat_naam||f.properties.nom||'Klimaat';
-        const app=f.properties.app||'';
-        layer.bindTooltip(`<strong>${naam}</strong><br><span style="opacity:0.7;font-size:0.8em">${app} · Premier Cru</span>`,{sticky:true,offset:[10,0]});
-        layer.on('click',function(e){
-          L.DomEvent.stopPropagation(e);
-          showKlimaatInfo(naam,app);
-        });
-        layer.on('mouseover',function(){
-          this.setStyle({fillOpacity:0.7,weight:3,fillColor:'rgba(245,200,66,0.6)',color:'#fff'});
-          this.bringToFront();
-        });
-        layer.on('mouseout',function(){
-          this.setStyle({fillOpacity:0.38,weight:1.8,fillColor:'rgba(245,200,66,0.22)',color:'#f5c842'});
-        });
-      }
-    });
-  }catch(e){console.error('Klimaten load error',e);}
-}
-
-map.on('zoomend',function(){
-  const z=map.getZoom();
-  if(z>=11){
-    loadKlimaten();
-    if(klimatenLayer&&!map.hasLayer(klimatenLayer))klimatenLayer.addTo(map);
-    Object.values(allLayers).forEach(l=>{l.setStyle({fillOpacity:0.08,opacity:0.25,weight:0.8});l.off('click');});
-  }else{
-    if(klimatenLayer&&map.hasLayer(klimatenLayer))map.removeLayer(klimatenLayer);
-    Object.entries(allLayers).forEach(([app,l])=>{
-      const c=COLORS[l._cls]||COLORS["Village"];
-      l.setStyle({fillOpacity:c.o,opacity:0.9,weight:1.2,color:c.s});
-      l.off('click');
-      l.on('click',function(){selectApp(app,this);});
-    });
-  }
-  updateZoomHint();
-});
-
-function showKlimaatInfo(naam,app){
-  // Verberg appellation panel, toon klimaat panel
-  document.getElementById('placeholder').style.display='none';
-  document.getElementById('plotPanel').classList.remove('active');
-  document.getElementById('klimaatPanel').classList.add('active');
-  switchTab('terroir');
-
-  document.getElementById('klimaatName').textContent=naam;
-  document.getElementById('klimaatApp').textContent=app+' · Premier Cru';
-
-  // Stats
-  const kd=KLIM[naam];
-  const statsEl=document.getElementById('klimaatStats');
-  if(kd){
-    statsEl.innerHTML=`
-      <div class="ks-cell"><div class="ks-label">Oppervlakte</div><div class="ks-value">${kd.ha} ha</div></div>
-      <div class="ks-cell"><div class="ks-label">Eigenaars</div><div class="ks-value">${kd.eigenaars}</div></div>`;
-    if(kd.info){
-      statsEl.innerHTML+=`<div class="ks-cell" style="grid-column:1/-1;border-right:none"><div class="ks-label">Terroir</div><div class="ks-value" style="font-size:0.8rem;line-height:1.5">${kd.info}</div></div>`;
-    }
-    // Producenten
-    const prodEl=document.getElementById('klimaatProducers');
-    if(kd.prod&&kd.prod.length){
-      prodEl.innerHTML=kd.prod.map(p=>`<div class="kp-item"><div class="kp-name">${p.n}</div><div class="kp-meta">${p.meta}</div><div class="kp-note">${p.note}</div></div>`).join('');
-    }else{
-      prodEl.innerHTML='<div style="opacity:0.45;font-size:0.82rem">Klik op de AI Sommelier voor producenten info.</div>';
-    }
-  }else{
-    statsEl.innerHTML='';
-    document.getElementById('klimaatProducers').innerHTML='<div style="opacity:0.45;font-size:0.82rem">Geen gedetailleerde data voor dit klimaat. Zie AI Sommelier.</div>';
-  }
-
-  // AI
-  loadKlimaatAI(naam,app);
-}
-
-function closeKlimaatPanel(){
-  document.getElementById('klimaatPanel').classList.remove('active');
-  document.getElementById('plotPanel').classList.add('active');
-}
-
-async function loadKlimaatAI(naam,app){
-  const el=document.getElementById('klimaatAI');
-  el.innerHTML='<div class="ai-loading"><span></span><span></span><span></span></div>';
-  const prompt=`Je bent expert sommelier. Geef een rijke toelichting (3-4 zinnen, Nederlands) over het Premier Cru klimaat "${naam}" in ${app}, Bourgogne. Wat maakt dit klimaat uniek qua bodem, ligging of stijl? Noem de typische smaakkenmerken en één concreet advies (producent of jaargang).`;
-  try{
-    const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,messages:[{role:"user",content:prompt}]})});
-    const data=await r.json();
-    el.innerHTML=`<div class="ai-text">${data.content?.[0]?.text||'Tijdelijk niet beschikbaar.'}</div>`;
-  }catch{el.innerHTML='<div class="ai-text" style="opacity:0.4;font-style:italic">AI niet beschikbaar.</div>';}
-}
-
 function toggleSatellite(){
   satMode=!satMode;
   const btn=document.getElementById('satelliteBtn');
