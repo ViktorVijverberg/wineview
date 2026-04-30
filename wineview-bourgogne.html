@@ -906,9 +906,6 @@ let klimatenLoaded=false;
 
 map.createPane('klimatenPane');
 map.getPane('klimatenPane').style.zIndex=450;
-map.createPane('appellationPane');
-map.getPane('appellationPane').style.zIndex=400;
-
 async function loadKlimaten(){
   if(klimatenLoaded)return;
   klimatenLoaded=true;
@@ -1091,7 +1088,7 @@ let allLayers={},activeLayer=null,activeFilter='all';
 // Render direct from embedded data
 (function(){
   L.geoJSON(GEOJSON_DATA,{
-    style:f=>{const c=COLORS[f.properties.classification]||COLORS["Village/Premier Cru"];return{color:c.s,fillColor:c.f,fillOpacity:c.o,weight:1.2,opacity:0.9};},
+    style:f=>{const cls=getAppClass(f.properties.app,f.properties.classification||"Village/Premier Cru");const c=COLORS[cls]||COLORS["Village"];return{color:c.s,fillColor:c.f,fillOpacity:c.o,weight:1.2,opacity:0.9};},
     onEachFeature:(f,layer)=>{
       const app=f.properties.app,rawCls=f.properties.classification||'Village/Premier Cru';
       const cls=getAppClass(app,rawCls);
