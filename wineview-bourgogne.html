@@ -185,8 +185,7 @@ header{background:var(--ink);color:var(--cream);padding:0 20px;height:var(--head
           <p>Klik op een appellation<br>voor terroir, AOC-regelgeving<br>&amp; AI-toelichting.</p>
           <div class="map-legend">
             <div class="legend-row"><div class="legend-swatch" style="background:#c9a227"></div>Grand Cru</div>
-            <div class="legend-row"><div class="legend-swatch" style="background:#6b2d8b"></div>Premier Cru dorp</div>
-            <div class="legend-row"><div class="legend-swatch" style="background:#8b2035"></div>Village</div>
+            <div class="legend-row"><div class="legend-swatch" style="background:#6b2d8b"></div>Premier Cru klimaat</div>
           </div>
         </div>
         <div class="plot-panel" id="plotPanel">
@@ -249,26 +248,108 @@ header{background:var(--ink);color:var(--cream);padding:0 20px;height:var(--head
 </div>
 
 <script>
+let gcLayer = null;
+let pcLayer = null;
+let activeLayer = null;
+let allLayers = {};   // app -> layer (GC)
+let allPCLayers = {}; // "app|klimaat" -> layer (PC)
+
 async function initMap(){
-  let data;
+  // Laad Grand Crus
   try{
-    const r = await fetch('appellations.geojson');
-    data = await r.json();
-  }catch(e){console.error('appellations load error', e);return;}
-  L.geoJSON(data,{
-    style:f=>{const cls=getAppClass(f.properties.app,f.properties.classification||'Village/Premier Cru');const c=COLORS[cls]||COLORS['Village'];return{color:c.s,fillColor:c.f,fillOpacity:c.o,weight:1.2,opacity:0.9};},
-    onEachFeature:(f,layer)=>{
-      const app=f.properties.app;
-      const cls=getAppClass(app,f.properties.classification||'Village/Premier Cru');
-      allLayers[app]=layer;layer._app=app;layer._cls=cls;
-      const c=COLORS[cls]||COLORS['Village'];
-      layer.bindTooltip(app,{sticky:true,offset:[10,0]});
-      layer.on('mouseover',function(){if(activeLayer!==this)this.setStyle({weight:2.5,fillOpacity:Math.min(c.o+0.12,0.95)});});
-      layer.on('mouseout',function(){if(activeLayer!==this)this.setStyle({weight:1.2,fillOpacity:c.o});});
-      layer.on('click',function(){selectApp(app,this);});
-    }
-  }).addTo(map);
+    const r = await fetch('grand_crus.geojson');
+    const data = await r.json();
+    gcLayer = L.geoJSON(data, {
+      style: f => ({
+        color:'#7a5c0a', fillColor:'#c9a227', fillOpacity:0.88,
+        weight:1.5, opacity:1
+      }),
+      onEachFeature:(f,layer)=>{
+        const app = f.properties.app;
+        allLayers[app] = layer;
+        layer._app = app;
+        layer._cls = 'Grand Cru';
+        layer.bindTooltip(`<strong>${app}</strong><br><span style="opacity:0.7;font-size:0.8em">Grand Cru</span>`,{sticky:true,offset:[10,0]});
+        layer.on('mouseover',function(){if(activeLayer!==this)this.setStyle({weight:3,fillOpacity:0.98,color:'#fff'});});
+        layer.on('mouseout',function(){if(activeLayer!==this)this.setStyle({weight:1.5,fillOpacity:0.88,color:'#7a5c0a'});});
+        layer.on('click',function(){selectApp(app,this);});
+      }
+    }).addTo(map);
+  }catch(e){console.error('GC load error',e);}
+
+  // Laad Premier Crus
+  try{
+    const r = await fetch('premier_crus.geojson');
+    const data = await r.json();
+    pcLayer = L.geoJSON(data, {
+      style: f => ({
+        color:'#3a1050', fillColor:'#6b2d8b', fillOpacity:0.78,
+        weight:1, opacity:0.9
+      }),
+      onEachFeature:(f,layer)=>{
+        const app = f.properties.app;
+        const klimaat = f.properties.klimaat_naam;
+        const key = app + '|' + klimaat;
+        allPCLayers[key] = layer;
+        layer._app = app;
+        layer._cls = 'Premier Cru';
+        layer._klimaat = klimaat;
+        layer.bindTooltip(`<strong>${klimaat}</strong><br><span style="opacity:0.7;font-size:0.8em">${app} · Premier Cru</span>`,{sticky:true,offset:[10,0]});
+        layer.on('mouseover',function(){if(activeLayer!==this)this.setStyle({weight:2.5,fillOpacity:0.95,color:'#fff'});});
+        layer.on('mouseout',function(){if(activeLayer!==this)this.setStyle({weight:1,fillOpacity:0.78,color:'#3a1050'});});
+        layer.on('click',function(){selectPC(app, klimaat, this);});
+      }
+    }).addTo(map);
+  }catch(e){console.error('PC load error',e);}
 }
+
+function selectPC(app, klimaat, layer){
+  // Reset vorige selectie
+  if(activeLayer){
+    const cls = activeLayer._cls;
+    if(cls==='Grand Cru') activeLayer.setStyle({weight:1.5,fillOpacity:0.88,color:'#7a5c0a'});
+    else activeLayer.setStyle({weight:1,fillOpacity:0.78,color:'#3a1050'});
+  }
+  activeLayer = layer;
+  layer.setStyle({weight:3,fillOpacity:0.95,color:'#fff'});
+  showPCInfo(app, klimaat);
+  switchTab('terroir');
+}
+
+function showPCInfo(app, klimaat){
+  document.getElementById('placeholder').style.display='none';
+  document.getElementById('plotPanel').classList.add('active');
+  document.getElementById('plotClassLabel').textContent=app.toUpperCase()+' · PREMIER CRU';
+  document.getElementById('plotName').textContent=klimaat;
+  document.getElementById('badgeRow').innerHTML='<span class="badge premier-cru">Premier Cru</span>';
+  document.getElementById('infoClass').textContent='Premier Cru';
+  document.getElementById('infoGrapes').textContent='—';
+  document.getElementById('infoColor').textContent='—';
+  document.getElementById('infoYield').textContent='—';
+  document.getElementById('infoAlcohol').textContent='—';
+  document.getElementById('infoSubregion').textContent=app;
+  document.getElementById('grapeChips').innerHTML='';
+  document.getElementById('lieuxditsSection').style.display='none';
+  document.getElementById('terroirText').textContent='';
+  renderMicroklimaat(app);
+  renderHistorisch(app);
+  renderVintage(app);
+  renderDomainesForApp(app);
+  // AI specifiek voor dit klimaat
+  loadPCai(app, klimaat);
+}
+
+async function loadPCai(app, klimaat){
+  const el = document.getElementById('aiContent');
+  el.innerHTML='<div class="ai-loading"><span></span><span></span><span></span></div>';
+  const prompt=`Je bent expert sommelier. Geef een rijke toelichting (3-4 zinnen, Nederlands) over het Premier Cru klimaat "${klimaat}" in ${app}, Bourgogne. Wat maakt dit perceel uniek qua bodem, ligging of stijl? Noem de typische smaakkenmerken en één concreet advies.`;
+  try{
+    const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,messages:[{role:"user",content:prompt}]})});
+    const data=await r.json();
+    el.innerHTML=`<div class="ai-text">${data.content?.[0]?.text||'Tijdelijk niet beschikbaar.'}</div>`;
+  }catch{el.innerHTML='<div class="ai-text" style="opacity:0.4;font-style:italic">AI niet beschikbaar.</div>';}
+}
+
 initMap();
 
 const HIST = {
@@ -864,21 +945,11 @@ const DOM = {
 };
 
 const COLORS={
-  "Grand Cru":{f:"#c9a227",s:"#7a5c0a",o:0.82},
-  "Premier Cru":{f:"#6b2d8b",s:"#3a1050",o:0.75},
-  "Village/Premier Cru":{f:"#8b2035",s:"#4a0d1a",o:0.70},
-  "Village":{f:"#5a3a1a",s:"#2a1800",o:0.60},
+  "Grand Cru":{f:"#c9a227",s:"#a07818",o:0.88},
+  "Premier Cru":{f:"#6b2d8b",s:"#3a1050",o:0.78},
 };
 const BC={"Grand Cru":"grand-cru","Premier Cru":"premier-cru","Village/Premier Cru":"premier-cru","Village":"regional"};
 
-// Appellations met echte Premier Cru klimaten
-const PC_APPS=new Set(["Aloxe-Corton","Beaune","Chablis","Chablis Grand Cru","Chambolle-Musigny","Chassagne-Montrachet","Fixin","Gevrey-Chambertin","Givry","Mercurey","Meursault","Morey-Saint-Denis","Nuits-Saint-Georges","Pommard","Pouilly-Fuissé","Puligny-Montrachet","Savigny-lès-Beaune","Volnay","Vosne-Romanée","Vougeot"]);
-
-function getAppClass(app, rawCls){
-  if(rawCls==="Grand Cru") return "Grand Cru";
-  if(PC_APPS.has(app)) return "Premier Cru";
-  return "Village";
-}
 
 const map=L.map('map',{center:[47.0,4.85],zoom:9});
 const darkTiles=L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'©OpenStreetMap ©CARTO | INAO 2026',subdomains:'abcd',maxZoom:19});
@@ -964,7 +1035,7 @@ function renderVintage(app){
 }
 
 
-let allLayers={},activeLayer=null,activeFilter='all';
+let activeFilter='all';
 
 // Render direct from embedded data
 
@@ -981,9 +1052,12 @@ document.querySelectorAll('.chip[data-filter]').forEach(chip=>{
 });
 
 function selectApp(app,layer){
-  if(activeLayer){const pc=COLORS[activeLayer._cls]||COLORS["Village/Premier Cru"];activeLayer.setStyle({weight:1.2,fillOpacity:pc.o,color:pc.s});}
+  if(activeLayer){
+    if(activeLayer._cls==='Grand Cru') activeLayer.setStyle({weight:1.5,fillOpacity:0.88,color:'#7a5c0a'});
+    else activeLayer.setStyle({weight:1,fillOpacity:0.78,color:'#3a1050'});
+  }
   activeLayer=layer;
-  layer.setStyle({weight:3,fillOpacity:0.92,color:'#f5f0e8'});
+  layer.setStyle({weight:3,fillOpacity:0.95,color:'#f5f0e8'});
   showInfo(app);
   switchTab('terroir');
 }
