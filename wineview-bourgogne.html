@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>WineView · Bourgogne</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
@@ -10,6 +10,97 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 :root{--cream:#f5f0e8;--parchment:#ede5d0;--ink:#1a1208;--wine:#6b1e2e;--gold:#b8941f;--gold-light:#d4ab3a;--terroir:#7a6040;--sidebar-w:390px;--header-h:52px;}
+
+/* ═══ MOBIEL RESPONSIVE ═══ */
+@media (max-width: 768px) {
+  :root { --header-h: 48px; }
+
+  /* Header compact op mobiel */
+  header { padding: 0 12px; gap: 8px; }
+  .logo { font-size: 1rem; }
+  .map-controls { gap: 4px; }
+  .toggle-btn {
+    font-size: 0.5rem;
+    padding: 4px 8px;
+    letter-spacing: 0.05em;
+  }
+
+  /* App body: kaart fullscreen, sidebar als overlay */
+  .app-body { position: relative; }
+  #map { width: 100%; }
+
+  /* Sidebar als bottom sheet */
+  .sidebar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100% !important;
+    height: 52px;
+    border-left: none;
+    border-top: 1px solid rgba(184,148,31,0.3);
+    border-radius: 16px 16px 0 0;
+    transition: height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 100;
+    overflow: hidden;
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.35);
+  }
+
+  /* Handle om sidebar omhoog te trekken */
+  .sidebar::before {
+    content: '';
+    display: block;
+    width: 36px;
+    height: 4px;
+    background: rgba(107,30,46,0.25);
+    border-radius: 2px;
+    margin: 8px auto 0;
+    flex-shrink: 0;
+  }
+
+  .sidebar.expanded { height: 75vh; }
+  .sidebar.fullscreen { height: calc(100vh - var(--header-h)); }
+
+  /* Sidebar top als tap handle */
+  .sidebar-top {
+    cursor: pointer;
+    padding: 4px 16px 8px;
+    flex-shrink: 0;
+  }
+  .sidebar-top h2 { font-size: 0.85rem; }
+
+  /* Search wrap full width */
+  .search-wrap { padding: 6px 12px; }
+
+  /* Tabs compact */
+  .tab { font-size: 0.52rem; padding: 8px 4px; }
+
+  /* Plot header compact */
+  .plot-header { padding: 10px 14px 8px; }
+  .plot-class-label { font-size: 0.5rem; }
+  .plot-name { font-size: 1.2rem; }
+
+  /* Info grid 2 kolommen */
+  .info-grid { grid-template-columns: 1fr 1fr; }
+
+  /* Sectie padding kleiner */
+  .section { padding: 10px 14px; }
+  .ai-section { padding: 10px 14px; }
+
+  /* Placeholder tekst kleiner */
+  .placeholder p { font-size: 0.8rem; }
+
+  /* Legende kleiner */
+  .map-legend { font-size: 0.65rem; }
+
+  /* Deel knop */
+  .share-btn { font-size: 0.5rem; padding: 4px 8px; }
+}
+
+@media (max-width: 400px) {
+  .toggle-btn { padding: 4px 6px; font-size: 0.45rem; }
+  .map-controls { gap: 2px; }
+}
 :root.light-theme{--ink:#f5f0e8;--cream:#1a1208;--parchment:#2a1e10;--wine:#6b1e2e;--terroir:#5a3a1a;--gold:#8a6a00;--gold-light:#a07800;}
 
 /* Header in licht thema */
@@ -319,6 +410,72 @@ let activeLayer = null;
 let allLayers = {};   // app -> layer (GC)
 let allPCLayers = {}; // "app|klimaat" -> layer (PC)
 
+// ═══ MOBIEL BOTTOM SHEET ═══
+function isMobile(){ return window.innerWidth <= 768; }
+
+function expandSidebar(){
+  if(!isMobile()) return;
+  const s = document.querySelector('.sidebar');
+  s.classList.remove('fullscreen');
+  s.classList.add('expanded');
+}
+
+function collapseSidebar(){
+  if(!isMobile()) return;
+  const s = document.querySelector('.sidebar');
+  s.classList.remove('expanded','fullscreen');
+}
+
+function fullscreenSidebar(){
+  if(!isMobile()) return;
+  const s = document.querySelector('.sidebar');
+  s.classList.add('fullscreen');
+  s.classList.remove('expanded');
+}
+
+// Touch swipe handler voor bottom sheet
+let touchStartY = 0;
+document.addEventListener('DOMContentLoaded', () => {
+  const sidebar = document.querySelector('.sidebar');
+  const sidebarTop = document.querySelector('.sidebar-top');
+
+  // Tap op sidebar-top opent/sluit
+  sidebarTop.addEventListener('click', () => {
+    if(!isMobile()) return;
+    if(sidebar.classList.contains('expanded') || sidebar.classList.contains('fullscreen')){
+      collapseSidebar();
+    } else {
+      expandSidebar();
+    }
+  });
+
+  // Swipe up/down
+  sidebar.addEventListener('touchstart', e => {
+    touchStartY = e.touches[0].clientY;
+  }, {passive:true});
+
+  sidebar.addEventListener('touchend', e => {
+    if(!isMobile()) return;
+    const dy = touchStartY - e.changedTouches[0].clientY;
+    if(dy > 40){
+      // Swipe omhoog
+      if(!sidebar.classList.contains('expanded') && !sidebar.classList.contains('fullscreen')){
+        expandSidebar();
+      } else if(sidebar.classList.contains('expanded')){
+        fullscreenSidebar();
+      }
+    } else if(dy < -40){
+      // Swipe omlaag
+      if(sidebar.classList.contains('fullscreen')){
+        expandSidebar();
+      } else if(sidebar.classList.contains('expanded')){
+        collapseSidebar();
+      }
+    }
+  }, {passive:true});
+});
+
+
 let currentApp = null;
 let currentKlimaat = null;
 
@@ -421,6 +578,7 @@ function selectPC(app, klimaat, layer){
 }
 
 function showPCInfo(app, klimaat){ currentApp=app; currentKlimaat=klimaat;
+  expandSidebar();
   document.getElementById('placeholder').style.display='none';
   document.getElementById('plotPanel').classList.add('active');
   document.getElementById('plotClassLabel').textContent=app.toUpperCase()+' · PREMIER CRU';
@@ -1433,6 +1591,7 @@ function selectApp(app,layer){
 }
 
 function showInfo(app){ currentApp=app; currentKlimaat=null;
+  expandSidebar();
   document.getElementById('placeholder').style.display='none';
   document.getElementById('plotPanel').classList.add('active');
   const d=A[app]||{};
