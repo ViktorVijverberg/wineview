@@ -193,7 +193,9 @@ header{background:var(--ink);color:var(--cream);padding:0 20px;height:var(--head
           <p>Klik op een appellation<br>voor terroir, AOC-regelgeving<br>&amp; AI-toelichting.</p>
           <div class="map-legend">
             <div class="legend-row"><div class="legend-swatch" style="background:#c9a227"></div>Grand Cru</div>
+            <div class="legend-row"><div class="legend-swatch" style="background:#c9a227"></div>Grand Cru</div>
             <div class="legend-row"><div class="legend-swatch" style="background:#6b2d8b"></div>Premier Cru klimaat</div>
+            <div class="legend-row"><div class="legend-swatch" style="background:#8b4513;opacity:0.8"></div>Village (zoom 12+)</div>
           </div>
         </div>
         <div class="plot-panel" id="plotPanel">
@@ -347,6 +349,57 @@ function showPCInfo(app, klimaat){
   // AI specifiek voor dit klimaat
 }
 
+
+let nsgLayer = null;
+let nsgLoaded = false;
+
+async function loadNSG(){
+  if(nsgLoaded) return;
+  nsgLoaded = true;
+  try{
+    const r = await fetch('nsg.geojson');
+    const data = await r.json();
+    nsgLayer = L.geoJSON(data, {
+      style: f => {
+        const isPC = f.properties.classification === 'Premier Cru';
+        return {
+          color: isPC ? '#3a1050' : '#5a2a0a',
+          fillColor: isPC ? '#6b2d8b' : '#8b4513',
+          fillOpacity: 0.75,
+          weight: 1
+        };
+      },
+      onEachFeature:(f, layer) => {
+        const p = f.properties;
+        const isPC = p.classification === 'Premier Cru';
+        layer.bindTooltip(
+          '<strong>'+(p.klimaat_naam||p.app)+'</strong><br>'+
+          '<span style="opacity:0.7;font-size:0.8em">'+p.classification+' · '+p.ha+' ha</span>',
+          {sticky:true, offset:[10,0]}
+        );
+        layer.on('mouseover', function(){
+          if(activeLayer!==this) this.setStyle({fillOpacity:0.95, weight:2, color:'#fff'});
+        });
+        layer.on('mouseout', function(){
+          if(activeLayer!==this) this.setStyle({
+            fillOpacity:0.75, weight:1,
+            color: isPC?'#3a1050':'#5a2a0a'
+          });
+        });
+        layer.on('click', function(){
+          if(activeLayer){
+            if(activeLayer._cls==='Grand Cru') activeLayer.setStyle({weight:1.5,fillOpacity:0.88,color:'#7a5c0a'});
+            else activeLayer.setStyle({weight:1,fillOpacity:0.78,color:'#3a1050'});
+          }
+          activeLayer = this;
+          this.setStyle({fillOpacity:0.95, weight:2.5, color:'#fff'});
+          showPCInfo(p.app, p.klimaat_naam||p.app);
+          switchTab('terroir');
+        });
+      }
+    }).addTo(map);
+  }catch(e){console.error('NSG load error',e);}
+}
 
 initMap();
 
