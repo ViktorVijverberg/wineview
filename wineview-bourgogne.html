@@ -10,13 +10,48 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 :root{--cream:#f5f0e8;--parchment:#ede5d0;--ink:#1a1208;--wine:#6b1e2e;--gold:#b8941f;--gold-light:#d4ab3a;--terroir:#7a6040;--sidebar-w:390px;--header-h:52px;}
-:root.light-theme{--ink:#f5f0e8;--cream:#1a1208;--parchment:#2a1e10;--wine:#8b2035;--terroir:#a08060;}
-:root.light-theme header{background:#f0ebe0;border-bottom:1px solid rgba(107,30,46,0.15);}
-:root.light-theme header .logo{color:var(--wine);}
-:root.light-theme header .logo em{color:#8a6a00;}
-:root.light-theme .toggle-btn{color:rgba(26,18,8,0.7);border-color:rgba(107,30,46,0.3);}
-:root.light-theme .toggle-btn:hover,:root.light-theme .toggle-btn.active{background:rgba(107,30,46,0.1);color:var(--wine);}
-:root.light-theme .sidebar{background:rgba(245,240,232,0.98);}
+:root.light-theme{--ink:#f5f0e8;--cream:#1a1208;--parchment:#2a1e10;--wine:#6b1e2e;--terroir:#5a3a1a;--gold:#8a6a00;--gold-light:#a07800;}
+
+/* Header in licht thema */
+:root.light-theme header{background:#2c1810;border-bottom:1px solid rgba(201,162,39,0.3);}
+:root.light-theme header .logo{color:#c9a227;}
+:root.light-theme header .logo em{color:#c9a227;}
+:root.light-theme .toggle-btn{color:rgba(245,240,232,0.75);border-color:rgba(201,162,39,0.35);}
+:root.light-theme .toggle-btn:hover,:root.light-theme .toggle-btn.active{background:rgba(201,162,39,0.2);color:#c9a227;border-color:#c9a227;}
+
+/* Sidebar in licht thema — warm licht beige, donkere tekst */
+:root.light-theme .sidebar{background:#f5f0e8;}
+:root.light-theme .sidebar-top{background:#f0ebe0;border-bottom:1px solid rgba(107,30,46,0.15);}
+:root.light-theme .sidebar-top h2{color:#1a1208;}
+:root.light-theme .plot-header{background:#ede5d0;border-bottom:1px solid rgba(107,30,46,0.12);}
+:root.light-theme .plot-class-label{color:#5a3a1a;}
+:root.light-theme .plot-name{color:#1a1208;}
+:root.light-theme .info-label{color:#5a3a1a;}
+:root.light-theme .info-value{color:#6b1e2e;}
+:root.light-theme .section-title{color:#5a3a1a;}
+:root.light-theme .section-text{color:#2a1808;}
+:root.light-theme .tab{color:#5a3a1a;}
+:root.light-theme .tab.active{color:#6b1e2e;border-bottom-color:#6b1e2e;}
+:root.light-theme .domaine-name{color:#6b1e2e;}
+:root.light-theme .domaine-meta{color:#5a3a1a;}
+:root.light-theme .domaine-note{color:rgba(26,18,8,0.6);}
+:root.light-theme .badge.grand-cru{background:rgba(201,162,39,0.2);color:#5a3000;border-color:rgba(201,162,39,0.5);}
+:root.light-theme .badge.premier-cru{background:rgba(107,45,139,0.12);color:#3a1050;border-color:rgba(107,45,139,0.3);}
+:root.light-theme .search-box{background:#ede5d0;border-color:rgba(107,30,46,0.2);}
+:root.light-theme .search-input{background:transparent;color:#1a1208;}
+:root.light-theme .search-input::placeholder{color:rgba(26,18,8,0.4);}
+:root.light-theme .search-results{background:#f0ebe0;border-color:rgba(107,30,46,0.15);}
+:root.light-theme .ri-name{color:#1a1208;}
+:root.light-theme .ri-type{color:#5a3a1a;}
+:root.light-theme .placeholder{color:#1a1208;}
+:root.light-theme .hist-era{color:#8a6a00;}
+:root.light-theme .hist-text{color:#2a1808;}
+:root.light-theme .mk-item{background:#ede5d0;border-color:rgba(107,30,46,0.12);}
+:root.light-theme .mk-label{color:#5a3a1a;}
+:root.light-theme .mk-value{color:#6b1e2e;}
+:root.light-theme .v-exceptional{background:rgba(201,162,39,0.2);color:#5a3000;}
+:root.light-theme .v-excellent{background:rgba(107,30,46,0.08);color:#6b1e2e;}
+:root.light-theme .section-collapsible:hover{background:rgba(107,30,46,0.04);}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Cormorant Garamond',serif;background:var(--ink);color:var(--ink);height:100vh;overflow:hidden;display:flex;flex-direction:column;}
 
@@ -331,6 +366,7 @@ function showPCInfo(app, klimaat){
   document.getElementById('infoGrapes').textContent='—';
   document.getElementById('infoColor').textContent='—';
   document.getElementById('infoYield').textContent='—';
+  document.getElementById('infoAlcohol').textContent='—';
   document.getElementById('infoSubregion').textContent=app;
   const pcKey=app+'|'+klimaat;
   const pcHaVal=PC_HA[pcKey];
