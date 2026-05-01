@@ -53,6 +53,7 @@
 :root.light-theme .v-excellent{background:rgba(107,30,46,0.08);color:#6b1e2e;}
 :root.light-theme .section-collapsible:hover{background:rgba(107,30,46,0.04);}
 *{margin:0;padding:0;box-sizing:border-box;}
+@keyframes pulse-ring{0%{transform:scale(0.8);opacity:0.8}100%{transform:scale(2.5);opacity:0}}
 body{font-family:'Cormorant Garamond',serif;background:var(--ink);color:var(--ink);height:100vh;overflow:hidden;display:flex;flex-direction:column;}
 
 header{background:var(--ink);color:var(--cream);padding:0 20px;height:var(--header-h);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;border-bottom:1px solid rgba(184,148,31,0.2);gap:12px;}
@@ -61,6 +62,15 @@ header{background:var(--ink);color:var(--cream);padding:0 20px;height:var(--head
 .logo span{opacity:0.45;margin:0 8px;font-size:0.9rem;}
 .logo .region{font-size:0.85rem;opacity:0.6;letter-spacing:0.08em;}
 .map-controls{display:flex;gap:6px;align-items:center;}
+
+#loadScreen{position:fixed;inset:0;background:#1a1208;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.6s ease;}
+#loadScreen.fade-out{opacity:0;pointer-events:none;}
+.load-logo{font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:300;font-style:italic;color:#c9a227;letter-spacing:0.15em;margin-bottom:8px;}
+.load-sub{font-family:'DM Mono',monospace;font-size:0.6rem;text-transform:uppercase;letter-spacing:0.2em;color:rgba(245,240,232,0.4);margin-bottom:40px;}
+.load-bar-wrap{width:200px;height:2px;background:rgba(201,162,39,0.15);border-radius:1px;overflow:hidden;}
+.load-bar{height:100%;background:#c9a227;border-radius:1px;animation:loadprogress 1.8s ease-in-out forwards;}
+@keyframes loadprogress{0%{width:0%}60%{width:75%}100%{width:100%}}
+.load-hint{font-family:'DM Mono',monospace;font-size:0.55rem;color:rgba(245,240,232,0.25);margin-top:16px;letter-spacing:0.1em;}
 .toggle-btn{font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;padding:5px 14px;border:1px solid rgba(184,148,31,0.4);background:transparent;color:rgba(245,240,232,0.7);border-radius:2px;cursor:pointer;transition:all 0.2s;}
 .toggle-btn:hover,.toggle-btn.active{background:rgba(184,148,31,0.15);color:var(--gold);border-color:rgba(184,148,31,0.7);}
 
@@ -123,6 +133,13 @@ header{background:var(--ink);color:var(--cream);padding:0 20px;height:var(--head
 .info-cell:nth-child(even){border-right:none;}
 .info-label{font-family:'DM Mono',monospace;font-size:0.55rem;text-transform:uppercase;letter-spacing:0.09em;color:var(--terroir);margin-bottom:2px;}
 .info-value{font-size:0.88rem;color:var(--wine);}
+.share-btn{display:inline-flex;align-items:center;gap:5px;font-family:'DM Mono',monospace;font-size:0.55rem;text-transform:uppercase;letter-spacing:0.08em;padding:5px 12px;border:1px solid rgba(107,30,46,0.2);border-radius:2px;cursor:pointer;color:var(--terroir);background:transparent;margin-left:8px;transition:all 0.15s;}
+.share-btn:hover{background:rgba(107,30,46,0.06);color:var(--wine);}
+.share-btn.copied{border-color:rgba(39,139,62,0.4);color:#27572a;background:rgba(39,139,62,0.08);}
+.prijs-indicator{display:flex;gap:2px;align-items:center;margin-top:1px;}
+.prijs-euro{font-size:0.85rem;color:var(--gold);opacity:0.25;transition:opacity 0.2s;}
+.prijs-euro.active{opacity:1;font-weight:600;}
+.prijs-range{font-size:0.65rem;color:var(--terroir);margin-left:4px;font-family:'DM Mono',monospace;}
 
 .section{padding:12px 20px;border-bottom:1px solid rgba(107,30,46,0.08);}
 .section-title{font-family:'DM Mono',monospace;font-size:0.56rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--terroir);margin-bottom:7px;}
@@ -190,6 +207,12 @@ header{background:var(--ink);color:var(--cream);padding:0 20px;height:var(--head
 </style>
 </head>
 <body>
+<div id="loadScreen">
+  <div class="load-logo">WineView</div>
+  <div class="load-sub">Bourgogne · Grand Cru & Premier Cru</div>
+  <div class="load-bar-wrap"><div class="load-bar"></div></div>
+  <div class="load-hint">Kaart wordt geladen…</div>
+</div>
 <header>
   <div class="logo"><em>WineView</em></div>
   <div class="map-controls">
@@ -236,6 +259,7 @@ header{background:var(--ink);color:var(--cream);padding:0 20px;height:var(--head
             <div class="plot-class-label" id="plotClassLabel">—</div>
             <div class="plot-name" id="plotName">—</div>
             <div class="badge-row" id="badgeRow"></div>
+            <button class="share-btn" id="shareBtn" onclick="shareApp()">🔗 Deel</button>
           </div>
           <div class="info-grid">
             <div class="info-cell"><div class="info-label">Classificatie</div><div class="info-value" id="infoClass">—</div></div>
@@ -245,6 +269,7 @@ header{background:var(--ink);color:var(--cream);padding:0 20px;height:var(--head
             <div class="info-cell"><div class="info-label">Druivenras</div><div class="info-value" id="infoGrapes">—</div></div>
             <div class="info-cell"><div class="info-label">Max rendement</div><div class="info-value" id="infoYield">—</div></div>
             <div class="info-cell"><div class="info-label">Kleur</div><div class="info-value" id="infoColor">—</div></div>
+            <div class="info-cell" style="grid-column:1/-1;border-right:none"><div class="info-label">Prijsniveau</div><div id="prijsIndicator"><div class="prijs-indicator"><span class="prijs-euro">€</span><span class="prijs-euro">€</span><span class="prijs-euro">€</span><span class="prijs-euro">€</span><span class="prijs-euro">€</span><span class="prijs-range" id="prijsRange"></span></div></div></div>
           </div>
           <div class="section">
             <div class="section-title">Druivenrassen (AOC)</div>
@@ -294,6 +319,42 @@ let activeLayer = null;
 let allLayers = {};   // app -> layer (GC)
 let allPCLayers = {}; // "app|klimaat" -> layer (PC)
 
+let currentApp = null;
+let currentKlimaat = null;
+
+function shareApp(){
+  const btn = document.getElementById('shareBtn');
+  let url = window.location.origin + window.location.pathname;
+  if(currentApp) url += '?app=' + encodeURIComponent(currentApp);
+  if(currentKlimaat) url += '&klimaat=' + encodeURIComponent(currentKlimaat);
+  navigator.clipboard.writeText(url).then(() => {
+    btn.textContent = '✓ Gekopieerd!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '🔗 Deel'; btn.classList.remove('copied'); }, 2000);
+  }).catch(() => {
+    prompt('Kopieer deze link:', url);
+  });
+}
+
+function checkURLParams(){
+  const params = new URLSearchParams(window.location.search);
+  const app = params.get('app');
+  const klimaat = params.get('klimaat');
+  if(app){
+    setTimeout(() => {
+      if(klimaat){
+        const key = app + '|' + klimaat;
+        const l = allPCLayers[key];
+        if(l){ map.fitBounds(l.getBounds().pad(0.5)); selectPC(app,klimaat,l); }
+      } else {
+        const l = allLayers[app];
+        if(l){ map.fitBounds(l.getBounds().pad(0.3)); selectApp(app,l); }
+      }
+    }, 1500);
+  }
+}
+
+
 async function initMap(){
   // Laad Grand Crus
   try{
@@ -312,7 +373,10 @@ async function initMap(){
         layer.bindTooltip(`<strong>${app}</strong><br><span style="opacity:0.7;font-size:0.8em">Grand Cru</span>`,{sticky:true,offset:[10,0]});
         layer.on('mouseover',function(){if(activeLayer!==this)this.setStyle({weight:3,fillOpacity:0.98,color:'#fff'});});
         layer.on('mouseout',function(){if(activeLayer!==this)this.setStyle({weight:1.5,fillOpacity:0.88,color:'#7a5c0a'});});
-        layer.on('click',function(){selectApp(app,this);});
+        layer.on('click',function(e){
+          selectApp(app,this);
+          pulseLayer(this);
+        });
       }
     }).addTo(map);
   }catch(e){console.error('GC load error',e);}
@@ -356,7 +420,7 @@ function selectPC(app, klimaat, layer){
   switchTab('terroir');
 }
 
-function showPCInfo(app, klimaat){
+function showPCInfo(app, klimaat){ currentApp=app; currentKlimaat=klimaat;
   document.getElementById('placeholder').style.display='none';
   document.getElementById('plotPanel').classList.add('active');
   document.getElementById('plotClassLabel').textContent=app.toUpperCase()+' · PREMIER CRU';
@@ -375,6 +439,7 @@ function showPCInfo(app, klimaat){
   document.getElementById('grapeChips').innerHTML='';
   document.getElementById('lieuxditsSection').style.display='none';
   document.getElementById('terroirText').textContent='';
+  renderPrijs(PRIJS_PC[app+'|'+klimaat]||null);
   renderMicroklimaat(app);
   renderHistorisch(app);
   renderVintage(app);
@@ -383,7 +448,14 @@ function showPCInfo(app, klimaat){
 }
 
 
-initMap();
+initMap().then(() => {
+  setTimeout(() => {
+    const ls = document.getElementById('loadScreen');
+    ls.classList.add('fade-out');
+    setTimeout(() => ls.style.display='none', 600);
+  }, 300);
+  checkURLParams();
+});
 
 const HIST = {
   "Chambertin":[
@@ -734,6 +806,40 @@ const KLIM = {
       {n:"Faiveley",meta:"Monopole · grote productie",note:"Enige producent. Uitstekende kwaliteit voor de prijs, vaak onderschat door snobs."}
     ]}
 };
+const PRIJS = {
+  "Romanée-Conti":"€€€€€","La Tâche":"€€€€€","La Romanée":"€€€€€",
+  "Musigny":"€€€€€","Montrachet":"€€€€€","Richebourg":"€€€€",
+  "Romanée-Saint-Vivant":"€€€€","La Grande Rue":"€€€€",
+  "Chambertin":"€€€€","Chambertin-Clos de Bèze":"€€€€",
+  "Clos de Tart":"€€€€","Clos des Lambrays":"€€€",
+  "Grands-Échézeaux":"€€€","Bonnes-Mares":"€€€",
+  "Clos Saint-Denis":"€€€","Clos de la Roche":"€€€",
+  "Chevalier-Montrachet":"€€€€","Bâtard-Montrachet":"€€€",
+  "Bienvenues-Bâtard-Montrachet":"€€€","Criots-Bâtard-Montrachet":"€€€",
+  "Corton-Charlemagne":"€€€","Échézeaux":"€€€",
+  "Clos de Vougeot":"€€","Corton":"€€",
+  "Chapelle-Chambertin":"€€€","Charmes-Chambertin":"€€",
+  "Griotte-Chambertin":"€€€","Latricières-Chambertin":"€€",
+  "Mazis-Chambertin":"€€€","Ruchottes-Chambertin":"€€€",
+};
+const PRIJS_PC = {
+  "Chambolle-Musigny|Les Amoureuses":"€€€€",
+  "Gevrey-Chambertin|Clos Saint-Jacques":"€€€€",
+  "Vosne-Romanée|Aux Malconsorts":"€€€",
+  "Vosne-Romanée|Les Suchots":"€€€",
+  "Meursault|Perrières":"€€€",
+  "Puligny-Montrachet|Les Pucelles":"€€€",
+  "Puligny-Montrachet|Les Folatières":"€€",
+  "Meursault|Charmes":"€€",
+  "Nuits-Saint-Georges|Les Saint-Georges":"€€",
+  "Chambolle-Musigny|Les Fuées":"€€",
+  "Gevrey-Chambertin|Les Cazetiers":"€€",
+  "Pommard|Les Rugiens Bas":"€€€",
+  "Volnay|Caillerets":"€€€",
+  "Chablis|Montée de Tonnerre":"€€",
+  "Beaune|Clos des Mouches":"€€",
+};
+const PRIJS_LABEL = {"€":"< €30","€€":"€30–80","€€€":"€80–200","€€€€":"€200–500","€€€€€":"> €500"};
 const A = {
   "Chablis Grand Cru":{g:["Chardonnay"],c:"Blanc",y:"45 hl/ha",a:"11°",s:"Chablis",
     lieux:["Blanchot","Bougros","Grenouilles","Les Clos","Preuses","Valmur","Vaudésir"],
@@ -1247,6 +1353,15 @@ function toggleSection(id){
   if(caret)caret.classList.toggle('open',open);
 }
 
+function renderPrijs(prijs){
+  const euros = document.querySelectorAll('.prijs-euro');
+  const levels = {'€':1,'€€':2,'€€€':3,'€€€€':4,'€€€€€':5};
+  const level = levels[prijs] || 0;
+  euros.forEach((el,i) => el.classList.toggle('active', i < level));
+  document.getElementById('prijsRange').textContent = prijs ? (PRIJS_LABEL[prijs]||'') : '';
+}
+
+
 function renderMicroklimaat(app){
   const mk=MK[app];
   const grid=document.getElementById('mkGrid');
@@ -1315,7 +1430,7 @@ function selectApp(app,layer){
   switchTab('terroir');
 }
 
-function showInfo(app){
+function showInfo(app){ currentApp=app; currentKlimaat=null;
   document.getElementById('placeholder').style.display='none';
   document.getElementById('plotPanel').classList.add('active');
   const d=A[app]||{};
@@ -1338,6 +1453,7 @@ function showInfo(app){
     document.getElementById('lieuxdits').innerHTML=d.lieux.map(l=>`<span class="lieu">${l}</span>`).join('');
   }else{lsec.style.display='none';}
   document.getElementById('terroirText').textContent=d.t||'Zie het INAO cahier des charges.';
+  renderPrijs(PRIJS[app]||null);
   renderMicroklimaat(app);
   renderHistorisch(app);
   renderVintage(app);
@@ -1389,6 +1505,24 @@ function renderAllDomaines(q=''){
   }
   document.getElementById('domainesContent').innerHTML=cnt?html:`<div class="no-results">Geen domaines gevonden voor "${q}"</div>`;
 }
+
+function pulseLayer(layer){
+  const bounds = layer.getBounds();
+  const center = bounds.getCenter();
+  const marker = L.circleMarker(center, {
+    radius: 20, color: '#c9a227', fillColor: 'transparent',
+    weight: 2, opacity: 0.8, className: 'pulse-marker'
+  }).addTo(map);
+  let opacity = 0.8, radius = 20;
+  const interval = setInterval(() => {
+    opacity -= 0.08;
+    radius += 3;
+    marker.setStyle({opacity: Math.max(0, opacity)});
+    marker.setRadius(radius);
+    if(opacity <= 0){ clearInterval(interval); map.removeLayer(marker); }
+  }, 30);
+}
+
 
 function zoomToGC(app){
   const l=allLayers[app];if(!l)return;
