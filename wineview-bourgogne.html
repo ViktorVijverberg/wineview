@@ -1359,9 +1359,6 @@ function zoomToGC(app){
   const l=allLayers[app];if(!l)return;
   map.fitBounds(l.getBounds().pad(0.3));
   selectApp(app,l);
-  // Zorg dat sidebar open is
-  document.getElementById('placeholder').style.display='none';
-  document.getElementById('plotPanel').classList.add('active');
 }
 function zoomToPC(key){
   const l=allPCLayers[key];if(!l)return;
@@ -1383,13 +1380,7 @@ function switchTab(t){
   document.getElementById('tabDomaines').classList.toggle('active',t==='domaines');
   document.getElementById('terroirTab').style.display=t==='terroir'?'block':'none';
   document.getElementById('domainesTab').style.display=t==='domaines'?'block':'none';
-  // Als domaines tab geopend wordt zonder actieve appellation: toon alle domaines
-  if(t==='domaines'){
-    const content=document.getElementById('domainesContent');
-    if(!content.innerHTML||content.innerHTML.trim()===''){
-      renderAllDomaines('');
-    }
-  }
+  if(t==='domaines')renderAllDomaines(document.getElementById('searchInput').value);
 }
 
 const si=document.getElementById('searchInput');
@@ -1401,27 +1392,18 @@ si.addEventListener('input',function(){
   let h='';
   // Grand Cru appellations
   Object.keys(allLayers).filter(a=>a.toLowerCase().includes(q)).slice(0,3).forEach(a=>{
-    h+=`<div class="search-result-item" onclick="zoomToGC('${a}');si.value='${a}';sr.style.display='none'"><div class="ri-name">${a}</div><div class="ri-type">Grand Cru</div></div>`;
+    h+=`<div class="search-result-item" onclick="zoomToGC('${a}');sr.style.display='none'"><div class="ri-name">${a}</div><div class="ri-type">Grand Cru</div></div>`;
   });
   // Premier Cru klimaten
   Object.keys(allPCLayers).filter(k=>k.toLowerCase().includes(q)).slice(0,5).forEach(key=>{
     const [app,klimaat]=key.split('|');
-    h+=`<div class="search-result-item" onclick="zoomToPC('${key}');si.value='${klimaat}';sr.style.display='none'"><div class="ri-name">${klimaat}</div><div class="ri-type">Premier Cru · ${app}</div></div>`;
+    h+=`<div class="search-result-item" onclick="zoomToPC('${key}');sr.style.display='none'"><div class="ri-name">${klimaat}</div><div class="ri-type">Premier Cru · ${app}</div></div>`;
   });
   // Domaines
   const dm=[];
   for(const[app,ds] of Object.entries(DOM))for(const d of ds)if(d.n.toLowerCase().includes(q))dm.push({...d,app});
-  dm.slice(0,3).forEach(d=>{h+=`<div class="search-result-item" onclick="zoomToGC('${d.app}');si.value='${d.n}';sr.style.display='none'"><div class="ri-name">${d.n}</div><div class="ri-type">Domaine · ${d.app}</div></div>`;});
+  dm.slice(0,3).forEach(d=>{h+=`<div class="search-result-item" onclick="zoomToGC('${d.app}');sr.style.display='none'"><div class="ri-name">${d.n}</div><div class="ri-type">Domaine · ${d.app}</div></div>`;});
   if(h){sr.innerHTML=h;sr.style.display='block';}else sr.style.display='none';
-});
-
-// Enter key selecteert eerste resultaat
-si.addEventListener('keydown',function(e){
-  if(e.key==='Escape'){sr.style.display='none';this.value='';return;}
-  if(e.key==='Enter'){
-    const first=sr.querySelector('.search-result-item');
-    if(first){first.click();}
-  }
 });
 document.addEventListener('click',e=>{if(!e.target.closest('.search-wrap-inner'))sr.style.display='none';});
 
